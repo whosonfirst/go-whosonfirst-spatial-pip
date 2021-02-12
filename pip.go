@@ -84,14 +84,6 @@ func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, body [
 		return nil, err
 	}
 
-	/*
-		body, err := f.MarshalJSON()
-
-		if err != nil {
-			return nil, err
-		}
-	*/
-
 	parent_hierarchy := whosonfirst.Hierarchies(parent_f)
 	parent_country := whosonfirst.Country(parent_f)
 
