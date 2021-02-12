@@ -168,7 +168,7 @@ func main() {
 			}
 		}
 
-		new_body, err := tool.PointInPolygonAndUpdate(ctx, body, pip.SingleSPRResultsFunc)
+		new_body, err := tool.PointInPolygonAndUpdate(ctx, body, pip.FirstSPRResultsFunc)
 
 		if err != nil {
 			return err
