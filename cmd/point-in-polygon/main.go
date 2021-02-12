@@ -7,16 +7,13 @@ import (
 	"github.com/aaronland/go-json-query"
 	"github.com/paulmach/orb/geojson"
 	"github.com/sfomuseum/go-flags/multi"
-	"github.com/sfomuseum/go-sfomuseum-mapshaper"	
-	"github.com/tidwall/sjson"
+	"github.com/sfomuseum/go-sfomuseum-mapshaper"
 	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-export/v2"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/feature"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/geometry"
-	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/whosonfirst"
 	"github.com/whosonfirst/go-whosonfirst-index"
 	_ "github.com/whosonfirst/go-whosonfirst-index/fs"
-	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
 	"github.com/whosonfirst/go-whosonfirst-spatial-pip"
 	_ "github.com/whosonfirst/go-whosonfirst-spatial-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-spatial/database"
@@ -25,7 +22,6 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"strconv"
 	"strings"
 )
 
@@ -149,6 +145,12 @@ func main() {
 
 	//
 
+	tool, err := pip.NewPointInPolygonTool(ctx, spatial_db, spatial_r, ms_client)
+
+	if err != nil {
+		log.Fatalf("Failed to create PIP tool, %v", err)
+	}
+
 	pip_cb := func(ctx context.Context, fh io.Reader, args ...interface{}) error {
 
 		path, err := index.PathForContext(ctx)
@@ -182,57 +184,19 @@ func main() {
 			return err
 		}
 
-		possible, err := pip.PointInPolygon(ctx, spatial_db, ms_client, f)
+		new_body, err := pip.PointInPolygonAndUpdate(ctx, f, pip.SingleSPRResultsFunc)
 
 		if err != nil {
 			return err
 		}
 
-		// custom filtering here...
-		
-		if len(possible) != 1 {
-			return fmt.Errorf("Number of results != 1")
-		}
-
-		parent_spr := possible[0]
-
-		parent_id, err := strconv.ParseInt(parent_spr.Id(), 10, 64)
+		new_body, err = ex.Export(ctx, new_body)
 
 		if err != nil {
 			return err
 		}
 
-		parent_f, err := wof_reader.LoadFeatureFromID(ctx, spatial_r, parent_id)
-
-		if err != nil {
-			return err
-		}
-
-		parent_hierarchy := whosonfirst.Hierarchies(parent_f)
-		parent_country := whosonfirst.Country(parent_f)
-
-		to_update := map[string]interface{}{
-			"properties.wof:parent_id": parent_id,
-			"properties.wof:country":   parent_country,
-			"properties.wof:hierarchy": parent_hierarchy,
-		}
-
-		for path, v := range to_update {
-
-			body, err = sjson.SetBytes(body, path, v)
-
-			if err != nil {
-				return err
-			}
-		}
-
-		body, err = ex.Export(ctx, body)
-
-		if err != nil {
-			return err
-		}
-
-		err = wof_writer.WriteFeatureBytes(ctx, wr, body)
+		err = wof_writer.WriteFeatureBytes(ctx, wr, new_body)
 
 		if err != nil {
 			return err
