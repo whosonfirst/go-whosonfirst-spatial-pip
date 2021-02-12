@@ -15,6 +15,7 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-spatial-pip"
 	_ "github.com/whosonfirst/go-whosonfirst-spatial-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-spatial/database"
+	"github.com/whosonfirst/go-whosonfirst-spatial/filter"
 	wof_writer "github.com/whosonfirst/go-whosonfirst-writer"
 	"github.com/whosonfirst/go-writer"
 	"io"
@@ -48,6 +49,21 @@ func main() {
 
 	query_mode := flag.String("query-mode", query.QUERYSET_MODE_ALL, desc_query_modes)
 
+	var is_current multi.MultiString
+	flag.Var(&is_current, "is-current", "One or more existential flags (-1, 0, 1) to filter results by.")
+
+	var is_ceased multi.MultiString
+	flag.Var(&is_ceased, "is-ceased", "One or more existential flags (-1, 0, 1) to filter results by.")
+
+	var is_deprecated multi.MultiString
+	flag.Var(&is_deprecated, "is-deprecated", "One or more existential flags (-1, 0, 1) to filter results by.")
+
+	var is_superseded multi.MultiString
+	flag.Var(&is_superseded, "is-superseded", "One or more existential flags (-1, 0, 1) to filter results by.")
+
+	var is_superseding multi.MultiString
+	flag.Var(&is_superseding, "is-superseding", "One or more existential flags (-1, 0, 1) to filter results by.")
+	
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -141,6 +157,14 @@ func main() {
 		log.Fatalf("Failed to create PIP tool, %v", err)
 	}
 
+	inputs := &filter.SPRInputs{}
+
+	inputs.IsCurrent = is_current
+	inputs.IsCeased = is_ceased
+	inputs.IsDeprecated = is_deprecated
+	inputs.IsSuperseded = is_superseded
+	inputs.IsSuperseding = is_superseding	
+	
 	pip_cb := func(ctx context.Context, fh io.Reader, args ...interface{}) error {
 
 		path, err := index.PathForContext(ctx)
@@ -168,7 +192,7 @@ func main() {
 			}
 		}
 
-		new_body, err := tool.PointInPolygonAndUpdate(ctx, body, pip.FirstSPRResultsFunc)
+		new_body, err := tool.PointInPolygonAndUpdate(ctx, inputs, pip.FirstSPRResultsFunc, body)
 
 		if err != nil {
 			return err

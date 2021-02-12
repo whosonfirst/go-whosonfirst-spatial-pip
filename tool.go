@@ -33,9 +33,9 @@ func NewPointInPolygonTool(ctx context.Context, spatial_db database.SpatialDatab
 	return t, nil
 }
 
-func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, body []byte, results_cb FilterSPRResultsFunc) ([]byte, error) {
+func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, inputs *filter.SPRInputs, results_cb FilterSPRResultsFunc, body []byte) ([]byte, error) {
 
-	possible, err := t.PointInPolygon(ctx, body)
+	possible, err := t.PointInPolygon(ctx, inputs, body)
 
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, body [
 	return body, nil
 }
 
-func (t *PointInPolygonTool) PointInPolygon(ctx context.Context, body []byte) ([]spr.StandardPlacesResult, error) {
+func (t *PointInPolygonTool) PointInPolygon(ctx context.Context, inputs *filter.SPRInputs, body []byte) ([]spr.StandardPlacesResult, error) {
 
 	pt_rsp := gjson.GetBytes(body, "properties.wof:placetype")
 
@@ -124,12 +124,7 @@ func (t *PointInPolygonTool) PointInPolygon(ctx context.Context, body []byte) ([
 			Y: lat,
 		}
 
-		// FIX ME - MAKE THIS A PARAMETER
-
-		inputs := &filter.SPRInputs{
-			Placetypes: []string{a.Name},
-			IsCurrent:  []string{"1"},
-		}
+		inputs.Placetypes = []string{ a.Name }
 
 		spr_filter, err := filter.NewSPRFilterFromInputs(inputs)
 
