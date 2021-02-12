@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/aaronland/go-json-query"
-	"github.com/paulmach/orb/geojson"
 	"github.com/sfomuseum/go-flags/multi"
 	"github.com/sfomuseum/go-sfomuseum-mapshaper"
 	"github.com/whosonfirst/go-reader"
@@ -178,13 +177,7 @@ func main() {
 			}
 		}
 
-		f, err := geojson.UnmarshalFeature(body)
-
-		if err != nil {
-			return err
-		}
-
-		new_body, err := pip.PointInPolygonAndUpdate(ctx, f, pip.SingleSPRResultsFunc)
+		new_body, err := tool.PointInPolygonAndUpdate(ctx, body, pip.SingleSPRResultsFunc)
 
 		if err != nil {
 			return err

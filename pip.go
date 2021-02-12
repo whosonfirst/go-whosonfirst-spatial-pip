@@ -7,6 +7,7 @@ import (
 	"github.com/paulmach/orb/geojson"
 	"github.com/sfomuseum/go-sfomuseum-mapshaper"
 	"github.com/skelterjohn/geom"
+	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/whosonfirst"
@@ -18,9 +19,9 @@ import (
 	"strconv"
 )
 
-type FilterSPRResultsFunc func(context.Context, reader.Reader, *geojson.Feature, []spr.StandardPlacesResult) (spr.StandardPlacesResult, error)
+type FilterSPRResultsFunc func(context.Context, reader.Reader, []byte, []spr.StandardPlacesResult) (spr.StandardPlacesResult, error)
 
-func SingleSPRResultsFunc(ctx context.Context, r reader.Reader, f *geojson.Feature, possible []spr.StandardPlacesResult) (spr.StandardPlacesResult, error) {
+func SingleSPRResultsFunc(ctx context.Context, r reader.Reader, body []byte, possible []spr.StandardPlacesResult) (spr.StandardPlacesResult, error) {
 
 	if len(possible) != 1 {
 		return nil, fmt.Errorf("Number of results != 1")
@@ -30,15 +31,15 @@ func SingleSPRResultsFunc(ctx context.Context, r reader.Reader, f *geojson.Featu
 	return parent_spr, nil
 }
 
-type Tool struct {
+type PointInPolygonTool struct {
 	Reader    reader.Reader
 	Database  database.SpatialDatabase
 	Mapshaper *mapshaper.Client
 }
 
-func NewPointInPolgygonTool(ctx context.Context, spatial_db database.SpatialDatabase, spatial_reader reader.Reader, ms_client *mapshaper.Client) (*Tool, error) {
+func NewPointInPolygonTool(ctx context.Context, spatial_db database.SpatialDatabase, spatial_reader reader.Reader, ms_client *mapshaper.Client) (*PointInPolygonTool, error) {
 
-	t := &Tool{
+	t := &PointInPolygonTool{
 		Reader:    spatial_reader,
 		Database:  spatial_db,
 		Mapshaper: ms_client,
@@ -47,15 +48,15 @@ func NewPointInPolgygonTool(ctx context.Context, spatial_db database.SpatialData
 	return t, nil
 }
 
-func (t *Tool) PointInPolygonAndUpdate(ctx context.Context, f *geojson.Feature, results_cb FilterSPRResultsFunc) ([]byte, error) {
+func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, body []byte, results_cb FilterSPRResultsFunc) ([]byte, error) {
 
-	possible, err := t.PointInPolygon(ctx, f)
+	possible, err := t.PointInPolygon(ctx, body)
 
 	if err != nil {
 		return nil, err
 	}
 
-	parent_spr, err := results_cb(ctx, t.Reader, f, possible)
+	parent_spr, err := results_cb(ctx, t.Reader, body, possible)
 
 	if err != nil {
 		return nil, err
@@ -73,11 +74,13 @@ func (t *Tool) PointInPolygonAndUpdate(ctx context.Context, f *geojson.Feature, 
 		return nil, err
 	}
 
-	body, err := f.MarshalJSON()
+	/*
+		body, err := f.MarshalJSON()
 
-	if err != nil {
-		return nil, err
-	}
+		if err != nil {
+			return nil, err
+		}
+	*/
 
 	parent_hierarchy := whosonfirst.Hierarchies(parent_f)
 	parent_country := whosonfirst.Country(parent_f)
@@ -100,21 +103,20 @@ func (t *Tool) PointInPolygonAndUpdate(ctx context.Context, f *geojson.Feature, 
 	return body, nil
 }
 
-func (t *Tool) PointInPolygon(ctx context.Context, f *geojson.Feature) ([]spr.StandardPlacesResult, error) {
+func (t *PointInPolygonTool) PointInPolygon(ctx context.Context, body []byte) ([]spr.StandardPlacesResult, error) {
 
-	props := f.Properties
-	v, ok := props["wof:placetype"]
+	pt_rsp := gjson.GetBytes(body, "properties.wof:placetype")
 
-	if !ok {
+	if !pt_rsp.Exists() {
 		return nil, fmt.Errorf("Missing 'wof:placetype' property")
 	}
 
-	// Get the list of valid ancestors for public galleries (enclosure)
+	pt_str := pt_rsp.String()
 
-	pt, err := placetypes.GetPlacetypeByName(v.(string))
+	pt, err := placetypes.GetPlacetypeByName(pt_str)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create new placetype for 'venue', %v", err)
+		return nil, fmt.Errorf("Failed to create new placetype for '%s', %v", pt_str, err)
 	}
 
 	roles := []string{
@@ -125,7 +127,7 @@ func (t *Tool) PointInPolygon(ctx context.Context, f *geojson.Feature) ([]spr.St
 
 	ancestors := placetypes.AncestorsForRoles(pt, roles)
 
-	centroid, err := t.PointInPolygonCentroid(ctx, f)
+	centroid, err := t.PointInPolygonCentroid(ctx, body)
 
 	if err != nil {
 		return nil, err
@@ -145,7 +147,7 @@ func (t *Tool) PointInPolygon(ctx context.Context, f *geojson.Feature) ([]spr.St
 			Y: lat,
 		}
 
-		// Ensure placetype and is current filters for ancestor
+		// FIX ME - MAKE THIS A PARAMETER
 
 		inputs := &filter.SPRInputs{
 			Placetypes: []string{a.Name},
@@ -177,7 +179,13 @@ func (t *Tool) PointInPolygon(ctx context.Context, f *geojson.Feature) ([]spr.St
 	return possible, nil
 }
 
-func (t *Tool) PointInPolygonCentroid(ctx context.Context, f *geojson.Feature) (*orb.Point, error) {
+func (t *PointInPolygonTool) PointInPolygonCentroid(ctx context.Context, body []byte) (*orb.Point, error) {
+
+	f, err := geojson.UnmarshalFeature(body)
+
+	if err != nil {
+		return nil, err
+	}
 
 	var candidate *geojson.Feature
 

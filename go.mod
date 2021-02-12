@@ -8,6 +8,7 @@ require (
 	github.com/sfomuseum/go-flags v0.7.0
 	github.com/sfomuseum/go-sfomuseum-mapshaper v0.0.0-20210212000251-b549bd7322c4
 	github.com/skelterjohn/geom v0.0.0-20180103142417-96f3e8a219c5
+	github.com/tidwall/gjson v1.6.8
 	github.com/tidwall/sjson v1.1.5
 	github.com/whosonfirst/go-reader v0.2.1
 	github.com/whosonfirst/go-whosonfirst-export/v2 v2.0.0
