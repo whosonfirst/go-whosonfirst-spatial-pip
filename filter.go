@@ -2,9 +2,9 @@ package pip
 
 import (
 	"context"
-	"github.com/whosonfirst/go-whosonfirst-spr"
-	"github.com/whosonfirst/go-reader"
 	"fmt"
+	"github.com/whosonfirst/go-reader"
+	"github.com/whosonfirst/go-whosonfirst-spr"
 )
 
 type FilterSPRResultsFunc func(context.Context, reader.Reader, []byte, []spr.StandardPlacesResult) (spr.StandardPlacesResult, error)
@@ -28,4 +28,3 @@ func SingleSPRResultsFunc(ctx context.Context, r reader.Reader, body []byte, pos
 	parent_spr := possible[0]
 	return parent_spr, nil
 }
-
