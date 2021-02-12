@@ -7,7 +7,6 @@ import (
 	"github.com/aaronland/go-json-query"
 	"github.com/sfomuseum/go-flags/multi"
 	"github.com/sfomuseum/go-sfomuseum-mapshaper"
-	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-export/v2"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/feature"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/geometry"
@@ -29,8 +28,6 @@ func main() {
 	indexer_uri := flag.String("indexer-uri", "repo://", "A valid whosonfirst/go-whosonfirst-index URI.")
 	exporter_uri := flag.String("exporter-uri", "whosonfirst://", "A valid whosonfirst/go-whosonfirst-export URI.")
 	writer_uri := flag.String("writer-uri", "null://", "A valid whosonfirst/go-writer URI.")
-
-	spatial_reader_uri := flag.String("spatial-reader-uri", "null://", "A valid whosonfirst/go-reader URI.")
 
 	spatial_uri := flag.String("spatial-database-uri", "", "A valid whosonfirst/go-whosonfirst-spatial URI.")
 	spatial_mode := flag.String("spatial-mode", "repo://", "...")
@@ -66,12 +63,6 @@ func main() {
 
 	if err != nil {
 		log.Fatalf("Failed to create writer for '%s', %v", *writer_uri, err)
-	}
-
-	spatial_r, err := reader.NewReader(ctx, *spatial_reader_uri)
-
-	if err != nil {
-		log.Fatalf("Failed to create reader for '%s', %v", *spatial_reader_uri, err)
 	}
 
 	// Set up mapshaper endpoint (for deriving centroids during PIP operations)
@@ -144,7 +135,7 @@ func main() {
 
 	//
 
-	tool, err := pip.NewPointInPolygonTool(ctx, spatial_db, spatial_r, ms_client)
+	tool, err := pip.NewPointInPolygonTool(ctx, spatial_db, ms_client)
 
 	if err != nil {
 		log.Fatalf("Failed to create PIP tool, %v", err)

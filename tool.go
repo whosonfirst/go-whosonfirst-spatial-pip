@@ -9,7 +9,6 @@ import (
 	"github.com/skelterjohn/geom"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/whosonfirst"
 	"github.com/whosonfirst/go-whosonfirst-placetypes"
 	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
@@ -19,38 +18,14 @@ import (
 	"strconv"
 )
 
-type FilterSPRResultsFunc func(context.Context, reader.Reader, []byte, []spr.StandardPlacesResult) (spr.StandardPlacesResult, error)
-
-func FirstSPRResultsFunc(ctx context.Context, r reader.Reader, body []byte, possible []spr.StandardPlacesResult) (spr.StandardPlacesResult, error) {
-
-	if len(possible) == 0 {
-		return nil, fmt.Errorf("No results")
-	}
-
-	parent_spr := possible[0]
-	return parent_spr, nil
-}
-
-func SingleSPRResultsFunc(ctx context.Context, r reader.Reader, body []byte, possible []spr.StandardPlacesResult) (spr.StandardPlacesResult, error) {
-
-	if len(possible) != 1 {
-		return nil, fmt.Errorf("Number of results != 1")
-	}
-
-	parent_spr := possible[0]
-	return parent_spr, nil
-}
-
 type PointInPolygonTool struct {
-	Reader    reader.Reader
 	Database  database.SpatialDatabase
 	Mapshaper *mapshaper.Client
 }
 
-func NewPointInPolygonTool(ctx context.Context, spatial_db database.SpatialDatabase, spatial_reader reader.Reader, ms_client *mapshaper.Client) (*PointInPolygonTool, error) {
+func NewPointInPolygonTool(ctx context.Context, spatial_db database.SpatialDatabase, ms_client *mapshaper.Client) (*PointInPolygonTool, error) {
 
 	t := &PointInPolygonTool{
-		Reader:    spatial_reader,
 		Database:  spatial_db,
 		Mapshaper: ms_client,
 	}
@@ -66,7 +41,7 @@ func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, body [
 		return nil, err
 	}
 
-	parent_spr, err := results_cb(ctx, t.Reader, body, possible)
+	parent_spr, err := results_cb(ctx, t.Database, body, possible)
 
 	if err != nil {
 		return nil, err
@@ -78,7 +53,7 @@ func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, body [
 		return nil, err
 	}
 
-	parent_f, err := wof_reader.LoadFeatureFromID(ctx, t.Reader, parent_id)
+	parent_f, err := wof_reader.LoadFeatureFromID(ctx, t.Database, parent_id)
 
 	if err != nil {
 		return nil, err

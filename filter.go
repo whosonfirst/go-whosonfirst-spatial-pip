@@ -1,0 +1,31 @@
+package pip
+
+import (
+	"context"
+	"github.com/whosonfirst/go-whosonfirst-spr"
+	"github.com/whosonfirst/go-reader"
+	"fmt"
+)
+
+type FilterSPRResultsFunc func(context.Context, reader.Reader, []byte, []spr.StandardPlacesResult) (spr.StandardPlacesResult, error)
+
+func FirstSPRResultsFunc(ctx context.Context, r reader.Reader, body []byte, possible []spr.StandardPlacesResult) (spr.StandardPlacesResult, error) {
+
+	if len(possible) == 0 {
+		return nil, fmt.Errorf("No results")
+	}
+
+	parent_spr := possible[0]
+	return parent_spr, nil
+}
+
+func SingleSPRResultsFunc(ctx context.Context, r reader.Reader, body []byte, possible []spr.StandardPlacesResult) (spr.StandardPlacesResult, error) {
+
+	if len(possible) != 1 {
+		return nil, fmt.Errorf("Number of results != 1")
+	}
+
+	parent_spr := possible[0]
+	return parent_spr, nil
+}
+
