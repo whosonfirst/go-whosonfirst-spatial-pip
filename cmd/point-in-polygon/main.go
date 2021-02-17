@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
-	"github.com/aaronland/go-json-query"
 	"github.com/sfomuseum/go-flags/multi"
 	"github.com/sfomuseum/go-sfomuseum-mapshaper"
 	"github.com/whosonfirst/go-whosonfirst-export/v2"
@@ -21,7 +19,6 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"strings"
 )
 
 func main() {
@@ -41,14 +38,6 @@ func main() {
 	// One day the functionality exposed here will be ported to Go and this won't be necessary
 
 	mapshaper_server := flag.String("mapshaper-server", "http://localhost:8080", "A valid HTTP URI pointing to a sfomuseum/go-sfomuseum-mapshaper server endpoint.")
-
-	var queries query.QueryFlags
-	flag.Var(&queries, "query", "One or more {PATH}={REGEXP} parameters for filtering records.")
-
-	valid_query_modes := strings.Join([]string{query.QUERYSET_MODE_ALL, query.QUERYSET_MODE_ANY}, ", ")
-	desc_query_modes := fmt.Sprintf("Specify how query filtering should be evaluated. Valid modes are: %s", valid_query_modes)
-
-	query_mode := flag.String("query-mode", query.QUERYSET_MODE_ALL, desc_query_modes)
 
 	var is_current multi.MultiString
 	flag.Var(&is_current, "is-current", "One or more existential flags (-1, 0, 1) to filter results by.")
@@ -99,16 +88,6 @@ func main() {
 
 	if !ok {
 		log.Fatalf("'%s' returned false", *mapshaper_server)
-	}
-
-	var qs *query.QuerySet
-
-	if len(queries) > 0 {
-
-		qs = &query.QuerySet{
-			Queries: queries,
-			Mode:    *query_mode,
-		}
 	}
 
 	//
@@ -178,19 +157,6 @@ func main() {
 
 		if err != nil {
 			return err
-		}
-
-		if qs != nil {
-
-			matches, err := query.Matches(ctx, qs, body)
-
-			if err != nil {
-				return err
-			}
-
-			if !matches {
-				return nil
-			}
 		}
 
 		new_body, err := tool.PointInPolygonAndUpdate(ctx, inputs, pip.FirstSPRResultsFunc, body)

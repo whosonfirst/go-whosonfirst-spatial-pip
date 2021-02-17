@@ -5,7 +5,6 @@ github.com/aaronland/go-artisanal-integers-proxy/service
 # github.com/aaronland/go-brooklynintegers-api v1.1.0
 github.com/aaronland/go-brooklynintegers-api
 # github.com/aaronland/go-json-query v0.0.2
-## explicit
 github.com/aaronland/go-json-query
 # github.com/aaronland/go-pool v0.0.0-20191128211702-88306299c758
 github.com/aaronland/go-pool
