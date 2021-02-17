@@ -1,6 +1,6 @@
 module github.com/whosonfirst/go-whosonfirst-spatial-pip
 
-go 1.12
+go 1.16
 
 require (
 	github.com/aaronland/go-json-query v0.0.2
@@ -13,7 +13,7 @@ require (
 	github.com/whosonfirst/go-reader v0.2.1
 	github.com/whosonfirst/go-whosonfirst-export/v2 v2.0.0
 	github.com/whosonfirst/go-whosonfirst-geojson-v2 v0.15.1
-	github.com/whosonfirst/go-whosonfirst-index v0.3.4
+	github.com/whosonfirst/go-whosonfirst-index/v2 v2.0.0
 	github.com/whosonfirst/go-whosonfirst-placetypes v0.2.4
 	github.com/whosonfirst/go-whosonfirst-reader v0.0.2
 	github.com/whosonfirst/go-whosonfirst-spatial v0.0.28

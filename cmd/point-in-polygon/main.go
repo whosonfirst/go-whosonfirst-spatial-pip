@@ -10,8 +10,8 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-export/v2"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/feature"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/geometry"
-	"github.com/whosonfirst/go-whosonfirst-index"
-	_ "github.com/whosonfirst/go-whosonfirst-index/fs"
+	"github.com/whosonfirst/go-whosonfirst-index/v2/emitter"
+	"github.com/whosonfirst/go-whosonfirst-index/v2/indexer"	
 	"github.com/whosonfirst/go-whosonfirst-spatial-pip"
 	_ "github.com/whosonfirst/go-whosonfirst-spatial-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-spatial/database"
@@ -26,7 +26,8 @@ import (
 
 func main() {
 
-	indexer_uri := flag.String("indexer-uri", "repo://", "A valid whosonfirst/go-whosonfirst-index URI.")
+	emitter_uri := flag.String("indexer-uri", "repo://", "A valid whosonfirst/go-whosonfirst-index/v2/emitter URI.")
+	
 	exporter_uri := flag.String("exporter-uri", "whosonfirst://", "A valid whosonfirst/go-whosonfirst-export URI.")
 	writer_uri := flag.String("writer-uri", "null://", "A valid whosonfirst/go-writer URI.")
 
@@ -120,7 +121,7 @@ func main() {
 
 	if len(spatial_paths) > 0 {
 
-		spatial_cb := func(ctx context.Context, fh io.Reader, args ...interface{}) error {
+		spatial_cb := func(ctx context.Context, fh io.ReadSeekCloser, args ...interface{}) error {
 
 			f, err := feature.LoadFeatureFromReader(fh)
 
@@ -136,7 +137,7 @@ func main() {
 			}
 		}
 
-		spatial_idx, err := index.NewIndexer(*spatial_mode, spatial_cb)
+		spatial_idx, err := indexer.NewIndexer(ctx, *spatial_mode, spatial_cb)
 
 		if err != nil {
 			log.Fatalf("Failed to create spatial indexer, %v", err)
@@ -165,9 +166,9 @@ func main() {
 	inputs.IsSuperseded = is_superseded
 	inputs.IsSuperseding = is_superseding	
 	
-	pip_cb := func(ctx context.Context, fh io.Reader, args ...interface{}) error {
+	pip_cb := func(ctx context.Context, fh io.ReadSeekCloser, args ...interface{}) error {
 
-		path, err := index.PathForContext(ctx)
+		path, err := emitter.PathForContext(ctx)
 
 		if err != nil {
 			return err
@@ -214,7 +215,7 @@ func main() {
 		return nil
 	}
 
-	pip_idx, err := index.NewIndexer(*indexer_uri, pip_cb)
+	pip_idx, err := indexer.NewIndexer(ctx, *emitter_uri, pip_cb)
 
 	if err != nil {
 		log.Fatal(err)
