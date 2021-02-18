@@ -12,7 +12,7 @@ require (
 	github.com/whosonfirst/go-reader v0.2.1
 	github.com/whosonfirst/go-whosonfirst-export/v2 v2.0.0
 	github.com/whosonfirst/go-whosonfirst-geojson-v2 v0.15.1
-	github.com/whosonfirst/go-whosonfirst-index/v2 v2.0.0
+	github.com/whosonfirst/go-whosonfirst-iterate v1.0.0
 	github.com/whosonfirst/go-whosonfirst-placetypes v0.2.4
 	github.com/whosonfirst/go-whosonfirst-reader v0.0.2
 	github.com/whosonfirst/go-whosonfirst-spatial v0.0.28
