@@ -26,20 +26,20 @@ type ApplicationOptions struct {
 	Exporter        string
 	MapshaperServer string
 	SpatialDatabase string
-	Iterator        string
-	SpatialIterator string
+	ToIterator      string
+	FromIterator    string
 	SPRResultsFunc  pip.FilterSPRResultsFunc
 	SPRFilterInputs *filter.SPRInputs
 }
 
 type Application struct {
-	Iterator        *iterator.Iterator
-	SpatialIterator *iterator.Iterator
+	to   *iterator.Iterator
+	from *iterator.Iterator
 }
 
 type ApplicationPaths struct {
-	PIP     []string
-	Spatial []string
+	To   []string
+	From []string
 }
 
 func NewApplicationOptionsFromCommandLine(ctx context.Context) (*ApplicationOptions, *ApplicationPaths, error) {
@@ -99,15 +99,15 @@ func NewApplicationOptionsFromCommandLine(ctx context.Context) (*ApplicationOpti
 		SpatialDatabase: *spatial_database_uri,
 		SPRResultsFunc:  pip.FirstSPRResultsFunc, // sudo make me configurable
 		SPRFilterInputs: inputs,
-		Iterator:        *iterator_uri,
-		SpatialIterator: *spatial_iterator_uri,
+		ToIterator:      *iterator_uri,
+		FromIterator:    *spatial_iterator_uri,
 	}
 
 	pip_paths := flag.Args()
 
 	paths := &ApplicationPaths{
-		PIP:     pip_paths,
-		Spatial: spatial_paths,
+		To:   pip_paths,
+		From: spatial_paths,
 	}
 
 	return opts, paths, nil
@@ -158,7 +158,7 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		return nil, fmt.Errorf("Failed to create PIP tool, %v", err)
 	}
 
-	pip_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
+	to_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
 
 		path, err := emitter.PathForContext(ctx)
 
@@ -171,6 +171,8 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		if err != nil {
 			return err
 		}
+
+		// TO DO: BE FORGIVING OF THINGS THAT CAN NOT BE PIP-ED
 
 		new_body, err := tool.PointInPolygonAndUpdate(ctx, opts.SPRFilterInputs, opts.SPRResultsFunc, body)
 
@@ -196,13 +198,13 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 
 	// These are the data we are PIP-ing
 
-	pip_iter, err := iterator.NewIterator(ctx, opts.Iterator, pip_cb)
+	to_iter, err := iterator.NewIterator(ctx, opts.ToIterator, to_cb)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create new iterator for input records, %v", err)
+		return nil, fmt.Errorf("Failed to create new PIP (to) iterator for input, %v", err)
 	}
 
-	spatial_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
+	from_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
 
 		f, err := feature.LoadFeatureFromReader(fh)
 
@@ -218,36 +220,30 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		}
 	}
 
-	spatial_iter, err := iterator.NewIterator(ctx, opts.SpatialIterator, spatial_cb)
+	from_iter, err := iterator.NewIterator(ctx, opts.FromIterator, from_cb)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create spatial indexer, %v", err)
+		return nil, fmt.Errorf("Failed to create spatial (from) iterator, %v", err)
 	}
 
 	app := &Application{
-		Iterator:        pip_iter,
-		SpatialIterator: spatial_iter,
+		to:   to_iter,
+		from: from_iter,
 	}
 
 	return app, nil
 }
-
-// Please write me
-
-// func (app *Application) NewApplicationFromFlagSet(ctx context.Context, fs *FlagSet) (*Application, error) {
-//	return nil, fmt.Errorf("Not implemented")
-// }
 
 func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err := app.SpatialIterator.IterateURIs(ctx, paths.Spatial...)
+	err := app.from.IterateURIs(ctx, paths.From...)
 
 	if err != nil {
 		return nil
 	}
 
-	return app.Iterator.IterateURIs(ctx, paths.PIP...)
+	return app.to.IterateURIs(ctx, paths.To...)
 }
