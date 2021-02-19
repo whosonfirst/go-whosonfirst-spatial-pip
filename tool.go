@@ -124,7 +124,7 @@ func (t *PointInPolygonTool) PointInPolygon(ctx context.Context, inputs *filter.
 			Y: lat,
 		}
 
-		inputs.Placetypes = []string{ a.Name }
+		inputs.Placetypes = []string{a.Name}
 
 		spr_filter, err := filter.NewSPRFilterFromInputs(inputs)
 

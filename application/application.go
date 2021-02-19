@@ -1,0 +1,253 @@
+package application
+
+import (
+	"context"
+	"flag"
+	"fmt"
+	"github.com/sfomuseum/go-flags/multi"
+	"github.com/sfomuseum/go-sfomuseum-mapshaper"
+	"github.com/whosonfirst/go-whosonfirst-export/v2"
+	"github.com/whosonfirst/go-whosonfirst-geojson-v2/feature"
+	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/geometry"
+	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"
+	"github.com/whosonfirst/go-whosonfirst-iterate/iterator"
+	"github.com/whosonfirst/go-whosonfirst-spatial-pip"
+	"github.com/whosonfirst/go-whosonfirst-spatial/database"
+	"github.com/whosonfirst/go-whosonfirst-spatial/filter"
+	wof_writer "github.com/whosonfirst/go-whosonfirst-writer"
+	"github.com/whosonfirst/go-writer"
+	"io"
+	"log"
+	"os"
+)
+
+type ApplicationOptions struct {
+	Writer          string
+	Exporter        string
+	MapshaperServer string
+	SpatialDatabase string
+	Iterator        string
+	SpatialIterator string
+	SPRResultsFunc  pip.FilterSPRResultsFunc
+	SPRFilterInputs *filter.SPRInputs
+}
+
+type Application struct {
+	Iterator        *iterator.Iterator
+	SpatialIterator *iterator.Iterator
+}
+
+type ApplicationPaths struct {
+	PIP     []string
+	Spatial []string
+}
+
+func NewApplicationOptionsFromCommandLine(ctx context.Context) (*ApplicationOptions, *ApplicationPaths, error) {
+
+	iterator_uri := flag.String("iterator-uri", "repo://", "A valid whosonfirst/go-whosonfirst-iterate/emitter scheme representing the ... to be PIP-ed.")
+
+	exporter_uri := flag.String("exporter-uri", "whosonfirst://", "A valid whosonfirst/go-whosonfirst-export URI.")
+	writer_uri := flag.String("writer-uri", "null://", "A valid whosonfirst/go-writer URI. This is where updated records will be written to.")
+
+	spatial_database_uri := flag.String("spatial-database-uri", "", "A valid whosonfirst/go-whosonfirst-spatial URI. This is the database of spatial records that will for PIP-ing.")
+	spatial_iterator_uri := flag.String("spatial-iterator-uri", "repo://", "A valid whosonfirst/go-whosonfirst-iterate/emitter scheme representing the ... to be indexed and used for PIP-ing.")
+
+	var spatial_paths multi.MultiString
+	flag.Var(&spatial_paths, "spatial-source", "One or more URIs to be indexed in the spatial database (used for PIP-ing).")
+
+	// As in github:sfomuseum/go-sfomuseum-mapshaper and github:sfomuseum/docker-sfomuseum-mapshaper
+	// One day the functionality exposed here will be ported to Go and this won't be necessary
+
+	mapshaper_server := flag.String("mapshaper-server", "http://localhost:8080", "A valid HTTP URI pointing to a sfomuseum/go-sfomuseum-mapshaper server endpoint.")
+
+	var is_current multi.MultiString
+	flag.Var(&is_current, "is-current", "One or more existential flags (-1, 0, 1) to filter PIP results.")
+
+	var is_ceased multi.MultiString
+	flag.Var(&is_ceased, "is-ceased", "One or more existential flags (-1, 0, 1) to filter PIP results.")
+
+	var is_deprecated multi.MultiString
+	flag.Var(&is_deprecated, "is-deprecated", "One or more existential flags (-1, 0, 1) to filter PIP results.")
+
+	var is_superseded multi.MultiString
+	flag.Var(&is_superseded, "is-superseded", "One or more existential flags (-1, 0, 1) to filter PIP results.")
+
+	var is_superseding multi.MultiString
+	flag.Var(&is_superseding, "is-superseding", "One or more existential flags (-1, 0, 1) to filter PIP results.")
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Perform point-in-polygon (PIP), and related update, operations on a set of Who's on First records.\n")
+		fmt.Fprintf(os.Stderr, "Usage:\n\t %s [options] uri(N) uri(N)\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Valid options are:\n\n")
+		flag.PrintDefaults()
+	}
+
+	flag.Parse()
+
+	inputs := &filter.SPRInputs{}
+
+	inputs.IsCurrent = is_current
+	inputs.IsCeased = is_ceased
+	inputs.IsDeprecated = is_deprecated
+	inputs.IsSuperseded = is_superseded
+	inputs.IsSuperseding = is_superseding
+
+	opts := &ApplicationOptions{
+		Writer:          *writer_uri,
+		Exporter:        *exporter_uri,
+		MapshaperServer: *mapshaper_server,
+		SpatialDatabase: *spatial_database_uri,
+		SPRResultsFunc:  pip.FirstSPRResultsFunc, // sudo make me configurable
+		SPRFilterInputs: inputs,
+		Iterator:        *iterator_uri,
+		SpatialIterator: *spatial_iterator_uri,
+	}
+
+	pip_paths := flag.Args()
+
+	paths := &ApplicationPaths{
+		PIP:     pip_paths,
+		Spatial: spatial_paths,
+	}
+
+	return opts, paths, nil
+}
+
+func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application, error) {
+
+	ex, err := export.NewExporter(ctx, opts.Exporter)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create exporter for '%s', %v", opts.Exporter, err)
+	}
+
+	wr, err := writer.NewWriter(ctx, opts.Writer)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create writer for '%s', %v", opts.Writer, err)
+	}
+
+	// Set up mapshaper endpoint (for deriving centroids during PIP operations)
+	// Make sure it's working
+
+	ms_client, err := mapshaper.NewClient(ctx, opts.MapshaperServer)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create mapshaper client for '%s', %v", opts.MapshaperServer, err)
+	}
+
+	ok, err := ms_client.Ping()
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to ping '%s', %v", opts.MapshaperServer, err)
+	}
+
+	if !ok {
+		return nil, fmt.Errorf("'%s' returned false", opts.MapshaperServer)
+	}
+
+	spatial_db, err := database.NewSpatialDatabase(ctx, opts.SpatialDatabase)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create spatial database for '%s', %v", opts.SpatialDatabase, err)
+	}
+
+	tool, err := pip.NewPointInPolygonTool(ctx, spatial_db, ms_client)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create PIP tool, %v", err)
+	}
+
+	pip_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
+
+		path, err := emitter.PathForContext(ctx)
+
+		if err != nil {
+			return err
+		}
+
+		body, err := io.ReadAll(fh)
+
+		if err != nil {
+			return err
+		}
+
+		new_body, err := tool.PointInPolygonAndUpdate(ctx, opts.SPRFilterInputs, opts.SPRResultsFunc, body)
+
+		if err != nil {
+			return err
+		}
+
+		new_body, err = ex.Export(ctx, new_body)
+
+		if err != nil {
+			return err
+		}
+
+		err = wof_writer.WriteFeatureBytes(ctx, wr, new_body)
+
+		if err != nil {
+			return err
+		}
+
+		log.Println("Update", path)
+		return nil
+	}
+
+	// These are the data we are PIP-ing
+
+	pip_iter, err := iterator.NewIterator(ctx, opts.Iterator, pip_cb)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create new iterator for input records, %v", err)
+	}
+
+	spatial_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
+
+		f, err := feature.LoadFeatureFromReader(fh)
+
+		if err != nil {
+			return err
+		}
+
+		switch geometry.Type(f) {
+		case "Polygon", "MultiPolygon":
+			return spatial_db.IndexFeature(ctx, f)
+		default:
+			return nil
+		}
+	}
+
+	spatial_iter, err := iterator.NewIterator(ctx, opts.SpatialIterator, spatial_cb)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create spatial indexer, %v", err)
+	}
+
+	app := &Application{
+		Iterator:        pip_iter,
+		SpatialIterator: spatial_iter,
+	}
+
+	return app, nil
+}
+
+// Please write me
+
+// func (app *Application) NewApplicationFromFlagSet(ctx context.Context, fs *FlagSet) (*Application, error) {
+//	return nil, fmt.Errorf("Not implemented")
+// }
+
+func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err := app.SpatialIterator.IterateURIs(ctx, paths.Spatial...)
+
+	if err != nil {
+		return nil
+	}
+
+	return app.Iterator.IterateURIs(ctx, paths.PIP...)
+}
