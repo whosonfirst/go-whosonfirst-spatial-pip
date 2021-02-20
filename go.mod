@@ -20,4 +20,5 @@ require (
 	github.com/whosonfirst/go-whosonfirst-spr v0.1.0
 	github.com/whosonfirst/go-whosonfirst-writer v0.2.0
 	github.com/whosonfirst/go-writer v0.4.0
+	github.com/whosonfirst/go-writer-featurecollection v0.0.0-20210220000357-f104bbafecc8
 )

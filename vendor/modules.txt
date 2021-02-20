@@ -154,6 +154,9 @@ github.com/whosonfirst/go-whosonfirst-writer
 # github.com/whosonfirst/go-writer v0.4.0
 ## explicit
 github.com/whosonfirst/go-writer
+# github.com/whosonfirst/go-writer-featurecollection v0.0.0-20210220000357-f104bbafecc8
+## explicit
+github.com/whosonfirst/go-writer-featurecollection
 # github.com/whosonfirst/walk v0.0.1
 github.com/whosonfirst/walk
 # github.com/whosonfirst/warning v0.1.1

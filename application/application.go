@@ -17,7 +17,7 @@ import (
 	wof_writer "github.com/whosonfirst/go-whosonfirst-writer"
 	"github.com/whosonfirst/go-writer"
 	"io"
-	"log"
+	_ "log"
 	"os"
 )
 
@@ -32,25 +32,26 @@ type ApplicationOptions struct {
 	SPRFilterInputs *filter.SPRInputs
 }
 
-type Application struct {
-	to   *iterator.Iterator
-	from *iterator.Iterator
-}
-
 type ApplicationPaths struct {
 	To   []string
 	From []string
 }
 
+type Application struct {
+	to   *iterator.Iterator
+	from *iterator.Iterator
+	writer writer.Writer	
+}
+
 func NewApplicationOptionsFromCommandLine(ctx context.Context) (*ApplicationOptions, *ApplicationPaths, error) {
 
-	iterator_uri := flag.String("iterator-uri", "repo://", "A valid whosonfirst/go-whosonfirst-iterate/emitter scheme representing the ... to be PIP-ed.")
+	iterator_uri := flag.String("iterator-uri", "repo://", "A valid whosonfirst/go-whosonfirst-iterate/emitter URI scheme. This is used to identify WOF records to be PIP-ed.")
 
 	exporter_uri := flag.String("exporter-uri", "whosonfirst://", "A valid whosonfirst/go-whosonfirst-export URI.")
 	writer_uri := flag.String("writer-uri", "null://", "A valid whosonfirst/go-writer URI. This is where updated records will be written to.")
 
 	spatial_database_uri := flag.String("spatial-database-uri", "", "A valid whosonfirst/go-whosonfirst-spatial URI. This is the database of spatial records that will for PIP-ing.")
-	spatial_iterator_uri := flag.String("spatial-iterator-uri", "repo://", "A valid whosonfirst/go-whosonfirst-iterate/emitter scheme representing the ... to be indexed and used for PIP-ing.")
+	spatial_iterator_uri := flag.String("spatial-iterator-uri", "repo://", "A valid whosonfirst/go-whosonfirst-iterate/emitter URI scheme. This is used to identify WOF records to be indexed in the spatial database.")
 
 	var spatial_paths multi.MultiString
 	flag.Var(&spatial_paths, "spatial-source", "One or more URIs to be indexed in the spatial database (used for PIP-ing).")
@@ -172,11 +173,11 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		if err != nil {
 			return err
 		}
-
+		
 		body, err := io.ReadAll(fh)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to read '%s', %v", path, err)
 		}
 
 		// TO DO: BE FORGIVING OF THINGS THAT CAN NOT BE PIP-ED
@@ -184,22 +185,22 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		new_body, err := tool.PointInPolygonAndUpdate(ctx, opts.SPRFilterInputs, opts.SPRResultsFunc, body)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to perform point and polygon (and update) operation for '%s', %v", path, err)
 		}
 
 		new_body, err = ex.Export(ctx, new_body)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to export '%s', %v", path, err)
 		}
 
 		err = wof_writer.WriteFeatureBytes(ctx, wr, new_body)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to write new record for '%s', %v", path, err)
 		}
 
-		log.Println("Update", path)
+		// log.Println("Update", path)
 		return nil
 	}
 
@@ -236,6 +237,7 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 	app := &Application{
 		to:   to_iter,
 		from: from_iter,
+		writer: wr,
 	}
 
 	return app, nil
@@ -252,5 +254,15 @@ func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error 
 		return nil
 	}
 
-	return app.to.IterateURIs(ctx, paths.To...)
+	err = app.to.IterateURIs(ctx, paths.To...)
+
+	if err != nil {
+		return nil
+	}
+
+	// This is important for something things like
+	// whosonfirst/go-writer-featurecollection
+	// (20210219/thisisaaronland)
+	
+	return app.writer.Close(ctx)
 }
