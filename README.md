@@ -59,7 +59,7 @@ $> make cli
 go build -mod vendor -o bin/point-in-polygon cmd/point-in-polygon/main.go
 ```
 
-### /point-in-polygon
+### point-in-polygon
 
 Perform point-in-polygon (PIP), and related update, operations on a set of Who's on First records.
 
@@ -95,6 +95,8 @@ Valid options are:
   -writer-uri string
     	A valid whosonfirst/go-writer URI. This is where updated records will be written to. (default "null://")
 ```
+
+#### Example
 
 For example:
 
