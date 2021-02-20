@@ -38,9 +38,13 @@ type ApplicationPaths struct {
 }
 
 type Application struct {
-	to   *iterator.Iterator
-	from *iterator.Iterator
-	writer writer.Writer	
+	to              *iterator.Iterator
+	from            *iterator.Iterator
+	tool            *pip.PointInPolygonTool
+	writer          writer.Writer
+	exporter        export.Exporter
+	sprResultsFunc  pip.FilterSPRResultsFunc
+	sprFilterInputs *filter.SPRInputs
 }
 
 func NewApplicationOptionsFromCommandLine(ctx context.Context) (*ApplicationOptions, *ApplicationPaths, error) {
@@ -166,6 +170,9 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		return nil, fmt.Errorf("Failed to create PIP tool, %v", err)
 	}
 
+	// TO DO: dummy callback that gets redefined in app.Run()
+	// see notes below (20210219/thisisaaronland)
+
 	to_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
 
 		path, err := emitter.PathForContext(ctx)
@@ -173,14 +180,24 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		if err != nil {
 			return err
 		}
-		
+
 		body, err := io.ReadAll(fh)
 
 		if err != nil {
 			return fmt.Errorf("Failed to read '%s', %v", path, err)
 		}
 
-		// TO DO: BE FORGIVING OF THINGS THAT CAN NOT BE PIP-ED
+		// The new new, waiting on changes
+
+		/*
+			_, err = app.UpdateFeature(ctx, body)
+
+			if err != nil {
+				return fmt.Errorf("Failed to update feature for '%s', %v", path, err)
+			}
+		*/
+
+		// START OF The old old
 
 		new_body, err := tool.PointInPolygonAndUpdate(ctx, opts.SPRFilterInputs, opts.SPRResultsFunc, body)
 
@@ -200,7 +217,8 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 			return fmt.Errorf("Failed to write new record for '%s', %v", path, err)
 		}
 
-		// log.Println("Update", path)
+		// END OF The old old
+
 		return nil
 	}
 
@@ -235,15 +253,25 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 	}
 
 	app := &Application{
-		to:   to_iter,
-		from: from_iter,
-		writer: wr,
+		to:              to_iter,
+		from:            from_iter,
+		tool:            tool,
+		exporter:        ex,
+		writer:          wr,
+		sprFilterInputs: opts.SPRFilterInputs,
+		sprResultsFunc:  opts.SPRResultsFunc,
 	}
 
 	return app, nil
 }
 
 func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error {
+
+	// TO DO: DEFINE iterator callbacks on the fly here rather
+	// than the constructor above - this is so that the PIP iterator
+	// can call `app.UpdateFeature` where it can't above because
+	// `app` doesn't exist yet...
+	// (20210219/thisisaaronland)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -263,6 +291,29 @@ func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error 
 	// This is important for something things like
 	// whosonfirst/go-writer-featurecollection
 	// (20210219/thisisaaronland)
-	
+
 	return app.writer.Close(ctx)
+}
+
+func (app *Application) UpdateFeature(ctx context.Context, body []byte) ([]byte, error) {
+
+	new_body, err := app.tool.PointInPolygonAndUpdate(ctx, app.sprFilterInputs, app.sprResultsFunc, body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	new_body, err = app.exporter.Export(ctx, new_body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = wof_writer.WriteFeatureBytes(ctx, app.writer, new_body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return new_body, nil
 }
