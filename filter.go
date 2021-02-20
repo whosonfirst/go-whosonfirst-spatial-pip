@@ -9,6 +9,16 @@ import (
 
 type FilterSPRResultsFunc func(context.Context, reader.Reader, []byte, []spr.StandardPlacesResult) (spr.StandardPlacesResult, error)
 
+func FirstButForgivingSPRResultsFunc(ctx context.Context, r reader.Reader, body []byte, possible []spr.StandardPlacesResult) (spr.StandardPlacesResult, error) {
+
+	if len(possible) == 0 {
+		return nil, nil
+	}
+
+	parent_spr := possible[0]
+	return parent_spr, nil
+}
+
 func FirstSPRResultsFunc(ctx context.Context, r reader.Reader, body []byte, possible []spr.StandardPlacesResult) (spr.StandardPlacesResult, error) {
 
 	if len(possible) == 0 {

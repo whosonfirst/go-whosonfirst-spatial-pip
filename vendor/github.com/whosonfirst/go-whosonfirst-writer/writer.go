@@ -9,7 +9,6 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	go_writer "github.com/whosonfirst/go-writer"
-	"io/ioutil"
 )
 
 func WriteFeature(ctx context.Context, wr go_writer.Writer, f geojson.Feature) error {
@@ -23,13 +22,13 @@ func WriteFeatureBytes(ctx context.Context, wr go_writer.Writer, body []byte) er
 	if err != nil {
 		return err
 	}
-	
+
 	ex_body, err := ex.Export(ctx, body)
 
 	if err != nil {
 		return err
 	}
-	
+
 	id_rsp := gjson.GetBytes(ex_body, "properties.wof:id")
 
 	if !id_rsp.Exists() {
@@ -45,7 +44,12 @@ func WriteFeatureBytes(ctx context.Context, wr go_writer.Writer, body []byte) er
 	}
 
 	br := bytes.NewReader(ex_body)
-	fh := ioutil.NopCloser(br)
 
-	return wr.Write(ctx, rel_path, fh)
+	_, err = wr.Write(ctx, rel_path, br)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

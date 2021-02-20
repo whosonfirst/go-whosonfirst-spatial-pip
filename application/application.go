@@ -97,7 +97,7 @@ func NewApplicationOptionsFromCommandLine(ctx context.Context) (*ApplicationOpti
 		Exporter:        *exporter_uri,
 		MapshaperServer: *mapshaper_server,
 		SpatialDatabase: *spatial_database_uri,
-		SPRResultsFunc:  pip.FirstSPRResultsFunc, // sudo make me configurable
+		SPRResultsFunc:  pip.FirstButForgivingSPRResultsFunc, // sudo make me configurable
 		SPRFilterInputs: inputs,
 		ToIterator:      *iterator_uri,
 		FromIterator:    *spatial_iterator_uri,
@@ -127,23 +127,30 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		return nil, fmt.Errorf("Failed to create writer for '%s', %v", opts.Writer, err)
 	}
 
-	// Set up mapshaper endpoint (for deriving centroids during PIP operations)
-	// Make sure it's working
+	var ms_client *mapshaper.Client
 
-	ms_client, err := mapshaper.NewClient(ctx, opts.MapshaperServer)
+	if opts.MapshaperServer != "" {
 
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create mapshaper client for '%s', %v", opts.MapshaperServer, err)
-	}
+		// Set up mapshaper endpoint (for deriving centroids during PIP operations)
+		// Make sure it's working
 
-	ok, err := ms_client.Ping()
+		client, err := mapshaper.NewClient(ctx, opts.MapshaperServer)
 
-	if err != nil {
-		return nil, fmt.Errorf("Failed to ping '%s', %v", opts.MapshaperServer, err)
-	}
+		if err != nil {
+			return nil, fmt.Errorf("Failed to create mapshaper client for '%s', %v", opts.MapshaperServer, err)
+		}
 
-	if !ok {
-		return nil, fmt.Errorf("'%s' returned false", opts.MapshaperServer)
+		ok, err := client.Ping()
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to ping '%s', %v", opts.MapshaperServer, err)
+		}
+
+		if !ok {
+			return nil, fmt.Errorf("'%s' returned false", opts.MapshaperServer)
+		}
+
+		ms_client = client
 	}
 
 	spatial_db, err := database.NewSpatialDatabase(ctx, opts.SpatialDatabase)

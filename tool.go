@@ -35,6 +35,8 @@ func NewPointInPolygonTool(ctx context.Context, spatial_db database.SpatialDatab
 
 func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, inputs *filter.SPRInputs, results_cb FilterSPRResultsFunc, body []byte) ([]byte, error) {
 
+	// START OF how to be forgiving
+
 	possible, err := t.PointInPolygon(ctx, inputs, body)
 
 	if err != nil {
@@ -47,26 +49,46 @@ func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, inputs
 		return nil, err
 	}
 
-	parent_id, err := strconv.ParseInt(parent_spr.Id(), 10, 64)
+	// END OF how to be forgiving
 
-	if err != nil {
-		return nil, err
+	// START OF sudo put me a separate function for interpreting parent_spr
+	// results and figuring out what to update based on things like wof:controlled, etc.
+	// Basically all of the logic in whosonfirst/py-mapzen-whosonfirst-hierarchy
+	// (20210219/thisisaaronland)
+
+	to_update := make(map[string]interface{})
+
+	if parent_spr == nil {
+
+		to_update = map[string]interface{}{
+			"properties.wof:parent_id": -1,
+		}
+
+	} else {
+
+		parent_id, err := strconv.ParseInt(parent_spr.Id(), 10, 64)
+
+		if err != nil {
+			return nil, err
+		}
+
+		parent_f, err := wof_reader.LoadFeatureFromID(ctx, t.Database, parent_id)
+
+		if err != nil {
+			return nil, err
+		}
+
+		parent_hierarchy := whosonfirst.Hierarchies(parent_f)
+		parent_country := whosonfirst.Country(parent_f)
+
+		to_update = map[string]interface{}{
+			"properties.wof:parent_id": parent_id,
+			"properties.wof:country":   parent_country,
+			"properties.wof:hierarchy": parent_hierarchy,
+		}
 	}
 
-	parent_f, err := wof_reader.LoadFeatureFromID(ctx, t.Database, parent_id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	parent_hierarchy := whosonfirst.Hierarchies(parent_f)
-	parent_country := whosonfirst.Country(parent_f)
-
-	to_update := map[string]interface{}{
-		"properties.wof:parent_id": parent_id,
-		"properties.wof:country":   parent_country,
-		"properties.wof:hierarchy": parent_hierarchy,
-	}
+	// END OF sudo put me a separate function for interpreting parent_spr
 
 	for path, v := range to_update {
 
@@ -138,6 +160,12 @@ func (t *PointInPolygonTool) PointInPolygon(ctx context.Context, inputs *filter.
 			return nil, fmt.Errorf("Failed to point in polygon for %v, %v", coord, err)
 		}
 
+		// This should never happen...
+
+		if rsp == nil {
+			return nil, fmt.Errorf("Failed to point in polygon for %v, null response", coord)
+		}
+
 		results := rsp.Results()
 
 		if len(results) == 0 {
@@ -159,6 +187,39 @@ func (t *PointInPolygonTool) PointInPolygonCentroid(ctx context.Context, body []
 		return nil, err
 	}
 
+	// First see whether there are exsiting reverse-geocoding properties
+	// that we can use
+
+	props := f.Properties
+
+	to_try := []string{
+		"reversegeo",
+		"lbl",
+		"mps",
+	}
+
+	for _, prefix := range to_try {
+
+		key_lat := fmt.Sprintf("%s:latitude", prefix)
+		key_lon := fmt.Sprintf("%s:longitude", prefix)
+
+		lat, ok_lat := props[key_lat]
+		lon, ok_lon := props[key_lon]
+
+		if !ok_lat || ok_lon {
+			continue
+		}
+
+		pt := &orb.Point{
+			lat.(float64),
+			lon.(float64),
+		}
+
+		return pt, nil
+	}
+
+	// Next see what kind of feature we are working with
+
 	var candidate *geojson.Feature
 
 	geojson_type := f.Geometry.GeoJSONType()
@@ -178,34 +239,44 @@ func (t *PointInPolygonTool) PointInPolygonCentroid(ctx context.Context, body []
 
 	case "Polygon", "MultiPolygon":
 
-		// this is not great but it's also not hard and making
-		// the "perfect" mapshaper interface is yak-shaving right
-		// now (20210204/thisisaaronland)
+		if t.Mapshaper == nil {
 
-		fc := geojson.NewFeatureCollection()
-		fc.Append(f)
-
-		fc, err := t.Mapshaper.AppendCentroids(ctx, fc)
-
-		if err != nil {
-			return nil, fmt.Errorf("Failed to append centroids, %v", err)
-		}
-
-		f = fc.Features[0]
-
-		candidate = geojson.NewFeature(f.Geometry)
-
-		lat, lat_ok := f.Properties["mps:latitude"]
-		lon, lon_ok := f.Properties["mps:longitude"]
-
-		if lat_ok && lon_ok {
-
-			pt := orb.Point{
-				lat.(float64),
-				lon.(float64),
-			}
+			bound := f.Geometry.Bound()
+			pt := bound.Center()
 
 			candidate = geojson.NewFeature(pt)
+
+		} else {
+
+			// this is not great but it's also not hard and making
+			// the "perfect" mapshaper interface is yak-shaving right
+			// now (20210204/thisisaaronland)
+
+			fc := geojson.NewFeatureCollection()
+			fc.Append(f)
+
+			fc, err := t.Mapshaper.AppendCentroids(ctx, fc)
+
+			if err != nil {
+				return nil, fmt.Errorf("Failed to append centroids, %v", err)
+			}
+
+			f = fc.Features[0]
+
+			candidate = geojson.NewFeature(f.Geometry)
+
+			lat, lat_ok := f.Properties["mps:latitude"]
+			lon, lon_ok := f.Properties["mps:longitude"]
+
+			if lat_ok && lon_ok {
+
+				pt := orb.Point{
+					lat.(float64),
+					lon.(float64),
+				}
+
+				candidate = geojson.NewFeature(pt)
+			}
 		}
 
 	default:

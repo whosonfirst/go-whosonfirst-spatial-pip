@@ -12,8 +12,9 @@ var writer_roster roster.Roster
 type WriterInitializationFunc func(ctx context.Context, uri string) (Writer, error)
 
 type Writer interface {
-	Write(context.Context, string, io.ReadCloser) error
-	URI(string) string
+	Write(context.Context, string, io.ReadSeeker) (int64, error)
+	WriterURI(context.Context, string) string
+	Close(context.Context) error
 }
 
 func NewService(ctx context.Context, uri string) (Writer, error) {

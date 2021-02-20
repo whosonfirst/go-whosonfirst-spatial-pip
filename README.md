@@ -30,9 +30,26 @@ func main() {
 
 _Error handling omitted for the sake of brevity._
 
+## Concepts
+
+### "Spatial" databases
+
+### Iterators
+
+### Exporters
+
+### Writers
+
 ## Tools
 
+```
+$> make cli
+go build -mod vendor -o bin/point-in-polygon cmd/point-in-polygon/main.go
+```
+
 ### /point-in-polygon
+
+For example:
 
 ```
 > ./bin/point-in-polygon \
@@ -47,6 +64,7 @@ _Error handling omitted for the sake of brevity._
 ## See also
 
 * https://github.com/whosonfirst/go-whosonfirst-spatial
+* https://github.com/whosonfirst/go-whosonfirst-iterate
 * https://github.com/whosonfirst/go-whosonfirst-exporter
 * https://github.com/whosonfirst/go-whosonfirst-spr
 * https://github.com/whosonfirst/go-writer

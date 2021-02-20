@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/aaronland/go-roster"
+	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-spatial"
-	"github.com/whosonfirst/go-reader"	
+	"github.com/whosonfirst/go-writer"
 	"net/url"
 	"sort"
 	"strings"
@@ -13,6 +14,7 @@ import (
 
 type SpatialDatabase interface {
 	reader.Reader
+	writer.Writer
 	spatial.SpatialIndex
 }
 
