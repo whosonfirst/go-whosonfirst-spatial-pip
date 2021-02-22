@@ -196,34 +196,12 @@ func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	from_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
-
-		f, err := feature.LoadFeatureFromReader(fh)
-
-		if err != nil {
-			return err
-		}
-
-		switch geometry.Type(f) {
-		case "Polygon", "MultiPolygon":
-			return app.spatial_db.IndexFeature(ctx, f)
-		default:
-			return nil
-		}
-	}
-
-	from_iter, err := iterator.NewIterator(ctx, app.from, from_cb)
+	err := app.IndexSpatialDatabase(ctx, paths.From...)
 
 	if err != nil {
-		return fmt.Errorf("Failed to create spatial (from) iterator, %v", err)
+		return err
 	}
-
-	err = from_iter.IterateURIs(ctx, paths.From...)
-
-	if err != nil {
-		return nil
-	}
-
+	
 	to_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
 
 		path, err := emitter.PathForContext(ctx)
@@ -268,8 +246,41 @@ func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error 
 	return app.writer.Close(ctx)
 }
 
-func (app *Application) UpdateAndPublishFeature(ctx context.Context, body []byte) ([]byte, error) {
+func (app *Application) IndexSpatialDatabase(ctx context.Context, uris ...string) error {
 
+	from_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
+
+		f, err := feature.LoadFeatureFromReader(fh)
+
+		if err != nil {
+			return err
+		}
+
+		switch geometry.Type(f) {
+		case "Polygon", "MultiPolygon":
+			return app.spatial_db.IndexFeature(ctx, f)
+		default:
+			return nil
+		}
+	}
+
+	from_iter, err := iterator.NewIterator(ctx, app.from, from_cb)
+
+	if err != nil {
+		return fmt.Errorf("Failed to create spatial (from) iterator, %v", err)
+	}
+
+	err = from_iter.IterateURIs(ctx, uris...)
+
+	if err != nil {
+		return err
+	}
+	
+	return nil
+}
+
+func (app *Application) UpdateAndPublishFeature(ctx context.Context, body []byte) ([]byte, error) {
+	
 	new_body, err := app.UpdateFeature(ctx, body)
 
 	if err != nil {
@@ -285,7 +296,7 @@ func (app *Application) UpdateFeature(ctx context.Context, body []byte) ([]byte,
 }
 
 func (app *Application) PublishFeature(ctx context.Context, body []byte) ([]byte, error) {
-
+	
 	new_body, err := app.exporter.Export(ctx, body)
 
 	if err != nil {
