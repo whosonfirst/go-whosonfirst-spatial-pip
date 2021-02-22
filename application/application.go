@@ -38,11 +38,12 @@ type ApplicationPaths struct {
 }
 
 type Application struct {
-	to              *iterator.Iterator
-	from            *iterator.Iterator
+	to              string
+	from            string
 	tool            *pip.PointInPolygonTool
 	writer          writer.Writer
 	exporter        export.Exporter
+	spatial_db      database.SpatialDatabase
 	sprResultsFunc  pip.FilterSPRResultsFunc
 	sprFilterInputs *filter.SPRInputs
 }
@@ -170,91 +171,10 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		return nil, fmt.Errorf("Failed to create PIP tool, %v", err)
 	}
 
-	// TO DO: dummy callback that gets redefined in app.Run()
-	// see notes below (20210219/thisisaaronland)
-
-	to_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
-
-		path, err := emitter.PathForContext(ctx)
-
-		if err != nil {
-			return err
-		}
-
-		body, err := io.ReadAll(fh)
-
-		if err != nil {
-			return fmt.Errorf("Failed to read '%s', %v", path, err)
-		}
-
-		// The new new, waiting on changes
-
-		/*
-			_, err = app.UpdateFeature(ctx, body)
-
-			if err != nil {
-				return fmt.Errorf("Failed to update feature for '%s', %v", path, err)
-			}
-		*/
-
-		// START OF The old old
-
-		new_body, err := tool.PointInPolygonAndUpdate(ctx, opts.SPRFilterInputs, opts.SPRResultsFunc, body)
-
-		if err != nil {
-			return fmt.Errorf("Failed to perform point and polygon (and update) operation for '%s', %v", path, err)
-		}
-
-		new_body, err = ex.Export(ctx, new_body)
-
-		if err != nil {
-			return fmt.Errorf("Failed to export '%s', %v", path, err)
-		}
-
-		err = wof_writer.WriteFeatureBytes(ctx, wr, new_body)
-
-		if err != nil {
-			return fmt.Errorf("Failed to write new record for '%s', %v", path, err)
-		}
-
-		// END OF The old old
-
-		return nil
-	}
-
-	// These are the data we are PIP-ing
-
-	to_iter, err := iterator.NewIterator(ctx, opts.ToIterator, to_cb)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create new PIP (to) iterator for input, %v", err)
-	}
-
-	from_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
-
-		f, err := feature.LoadFeatureFromReader(fh)
-
-		if err != nil {
-			return err
-		}
-
-		switch geometry.Type(f) {
-		case "Polygon", "MultiPolygon":
-			return spatial_db.IndexFeature(ctx, f)
-		default:
-			return nil
-		}
-	}
-
-	from_iter, err := iterator.NewIterator(ctx, opts.FromIterator, from_cb)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create spatial (from) iterator, %v", err)
-	}
-
 	app := &Application{
-		to:              to_iter,
-		from:            from_iter,
+		to:              opts.ToIterator,
+		from:            opts.FromIterator,
+		spatial_db:      spatial_db,
 		tool:            tool,
 		exporter:        ex,
 		writer:          wr,
@@ -276,16 +196,69 @@ func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err := app.from.IterateURIs(ctx, paths.From...)
+	from_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
+
+		f, err := feature.LoadFeatureFromReader(fh)
+
+		if err != nil {
+			return err
+		}
+
+		switch geometry.Type(f) {
+		case "Polygon", "MultiPolygon":
+			return app.spatial_db.IndexFeature(ctx, f)
+		default:
+			return nil
+		}
+	}
+
+	from_iter, err := iterator.NewIterator(ctx, app.from, from_cb)
+
+	if err != nil {
+		return fmt.Errorf("Failed to create spatial (from) iterator, %v", err)
+	}
+
+	err = from_iter.IterateURIs(ctx, paths.From...)
 
 	if err != nil {
 		return nil
 	}
 
-	err = app.to.IterateURIs(ctx, paths.To...)
+	to_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
+
+		path, err := emitter.PathForContext(ctx)
+
+		if err != nil {
+			return err
+		}
+
+		body, err := io.ReadAll(fh)
+
+		if err != nil {
+			return fmt.Errorf("Failed to read '%s', %v", path, err)
+		}
+
+		_, err = app.UpdateFeature(ctx, body)
+
+		if err != nil {
+			return fmt.Errorf("Failed to update feature for '%s', %v", path, err)
+		}
+
+		return nil
+	}
+
+	// These are the data we are PIP-ing
+
+	to_iter, err := iterator.NewIterator(ctx, app.to, to_cb)
 
 	if err != nil {
-		return nil
+		return fmt.Errorf("Failed to create new PIP (to) iterator for input, %v", err)
+	}
+
+	err = to_iter.IterateURIs(ctx, paths.To...)
+
+	if err != nil {
+		return err
 	}
 
 	// This is important for something things like
