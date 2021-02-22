@@ -22,14 +22,17 @@ import (
 )
 
 type ApplicationOptions struct {
-	Writer          string
-	Exporter        string
-	MapshaperServer string
-	SpatialDatabase string
-	ToIterator      string
-	FromIterator    string
-	SPRResultsFunc  pip.FilterSPRResultsFunc
-	SPRFilterInputs *filter.SPRInputs
+	Writer             writer.Writer
+	WriterURI          string
+	Exporter           export.Exporter
+	ExporterURI        string
+	MapshaperServerURI string
+	SpatialDatabase    database.SpatialDatabase
+	SpatialDatabaseURI string
+	ToIterator         string
+	FromIterator       string
+	SPRResultsFunc     pip.FilterSPRResultsFunc
+	SPRFilterInputs    *filter.SPRInputs
 }
 
 type ApplicationPaths struct {
@@ -99,14 +102,14 @@ func NewApplicationOptionsFromCommandLine(ctx context.Context) (*ApplicationOpti
 	inputs.IsSuperseding = is_superseding
 
 	opts := &ApplicationOptions{
-		Writer:          *writer_uri,
-		Exporter:        *exporter_uri,
-		MapshaperServer: *mapshaper_server,
-		SpatialDatabase: *spatial_database_uri,
-		SPRResultsFunc:  pip.FirstButForgivingSPRResultsFunc, // sudo make me configurable
-		SPRFilterInputs: inputs,
-		ToIterator:      *iterator_uri,
-		FromIterator:    *spatial_iterator_uri,
+		WriterURI:          *writer_uri,
+		ExporterURI:        *exporter_uri,
+		SpatialDatabaseURI: *spatial_database_uri,
+		MapshaperServerURI: *mapshaper_server,
+		SPRResultsFunc:     pip.FirstButForgivingSPRResultsFunc, // sudo make me configurable
+		SPRFilterInputs:    inputs,
+		ToIterator:         *iterator_uri,
+		FromIterator:       *spatial_iterator_uri,
 	}
 
 	pip_paths := flag.Args()
@@ -121,48 +124,74 @@ func NewApplicationOptionsFromCommandLine(ctx context.Context) (*ApplicationOpti
 
 func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application, error) {
 
-	ex, err := export.NewExporter(ctx, opts.Exporter)
+	var ex export.Exporter
+	var wr writer.Writer
+	var spatial_db database.SpatialDatabase
 
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create exporter for '%s', %v", opts.Exporter, err)
+	if opts.Exporter != nil {
+		ex = opts.Exporter
+	} else {
+
+		_ex, err := export.NewExporter(ctx, opts.ExporterURI)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to create exporter for '%s', %v", opts.ExporterURI, err)
+		}
+
+		ex = _ex
 	}
 
-	wr, err := writer.NewWriter(ctx, opts.Writer)
+	if opts.Writer != nil {
+		wr = opts.Writer
+	} else {
+		_wr, err := writer.NewWriter(ctx, opts.WriterURI)
 
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create writer for '%s', %v", opts.Writer, err)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to create writer for '%s', %v", opts.WriterURI, err)
+		}
+
+		wr = _wr
 	}
+
+	if opts.SpatialDatabase != nil {
+		spatial_db = opts.SpatialDatabase
+	} else {
+		_db, err := database.NewSpatialDatabase(ctx, opts.SpatialDatabaseURI)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to create spatial database for '%s', %v", opts.SpatialDatabaseURI, err)
+		}
+
+		spatial_db = _db
+	}
+
+	// All of this mapshaper stuff can't be retired/replaced fast enough...
+	// (20210222/thisisaaronland)
 
 	var ms_client *mapshaper.Client
 
-	if opts.MapshaperServer != "" {
+	if opts.MapshaperServerURI != "" {
 
 		// Set up mapshaper endpoint (for deriving centroids during PIP operations)
 		// Make sure it's working
 
-		client, err := mapshaper.NewClient(ctx, opts.MapshaperServer)
+		client, err := mapshaper.NewClient(ctx, opts.MapshaperServerURI)
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to create mapshaper client for '%s', %v", opts.MapshaperServer, err)
+			return nil, fmt.Errorf("Failed to create mapshaper client for '%s', %v", opts.MapshaperServerURI, err)
 		}
 
 		ok, err := client.Ping()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to ping '%s', %v", opts.MapshaperServer, err)
+			return nil, fmt.Errorf("Failed to ping '%s', %v", opts.MapshaperServerURI, err)
 		}
 
 		if !ok {
-			return nil, fmt.Errorf("'%s' returned false", opts.MapshaperServer)
+			return nil, fmt.Errorf("'%s' returned false", opts.MapshaperServerURI)
 		}
 
 		ms_client = client
-	}
-
-	spatial_db, err := database.NewSpatialDatabase(ctx, opts.SpatialDatabase)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create spatial database for '%s', %v", opts.SpatialDatabase, err)
 	}
 
 	tool, err := pip.NewPointInPolygonTool(ctx, spatial_db, ms_client)
@@ -201,7 +230,7 @@ func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error 
 	if err != nil {
 		return err
 	}
-	
+
 	to_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
 
 		path, err := emitter.PathForContext(ctx)
@@ -275,12 +304,12 @@ func (app *Application) IndexSpatialDatabase(ctx context.Context, uris ...string
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
 func (app *Application) UpdateAndPublishFeature(ctx context.Context, body []byte) ([]byte, error) {
-	
+
 	new_body, err := app.UpdateFeature(ctx, body)
 
 	if err != nil {
@@ -296,7 +325,7 @@ func (app *Application) UpdateFeature(ctx context.Context, body []byte) ([]byte,
 }
 
 func (app *Application) PublishFeature(ctx context.Context, body []byte) ([]byte, error) {
-	
+
 	new_body, err := app.exporter.Export(ctx, body)
 
 	if err != nil {
