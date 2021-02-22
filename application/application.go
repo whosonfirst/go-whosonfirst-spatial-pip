@@ -238,7 +238,7 @@ func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error 
 			return fmt.Errorf("Failed to read '%s', %v", path, err)
 		}
 
-		_, err = app.UpdateFeature(ctx, body)
+		_, err = app.UpdateAndPublishFeature(ctx, body)
 
 		if err != nil {
 			return fmt.Errorf("Failed to update feature for '%s', %v", path, err)
@@ -268,15 +268,25 @@ func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error 
 	return app.writer.Close(ctx)
 }
 
-func (app *Application) UpdateFeature(ctx context.Context, body []byte) ([]byte, error) {
+func (app *Application) UpdateAndPublishFeature(ctx context.Context, body []byte) ([]byte, error) {
 
-	new_body, err := app.tool.PointInPolygonAndUpdate(ctx, app.sprFilterInputs, app.sprResultsFunc, body)
+	new_body, err := app.UpdateFeature(ctx, body)
 
 	if err != nil {
 		return nil, err
 	}
 
-	new_body, err = app.exporter.Export(ctx, new_body)
+	return app.PublishFeature(ctx, new_body)
+}
+
+func (app *Application) UpdateFeature(ctx context.Context, body []byte) ([]byte, error) {
+
+	return app.tool.PointInPolygonAndUpdate(ctx, app.sprFilterInputs, app.sprResultsFunc, body)
+}
+
+func (app *Application) PublishFeature(ctx context.Context, body []byte) ([]byte, error) {
+
+	new_body, err := app.exporter.Export(ctx, body)
 
 	if err != nil {
 		return nil, err
