@@ -36,9 +36,9 @@ type ApplicationOptions struct {
 	SpatialDatabaseURI string
 	ToIterator         string
 	FromIterator       string
-		SPRFilterInputs    *filter.SPRInputs
-	SPRResultsFunc     pip.FilterSPRResultsFunc		// This one chooses one result among many (or nil)
-	PIPUpdateFunc pip.PointInPolygonToolUpdateCallback	// This one constructs a map[string]interface{} to update the target record (or not) 
+	SPRFilterInputs    *filter.SPRInputs
+	SPRResultsFunc     pip.FilterSPRResultsFunc             // This one chooses one result among many (or nil)
+	PIPUpdateFunc      pip.PointInPolygonToolUpdateCallback // This one constructs a map[string]interface{} to update the target record (or not)
 }
 
 type ApplicationPaths struct {
@@ -55,7 +55,7 @@ type Application struct {
 	spatial_db      database.SpatialDatabase
 	sprResultsFunc  pip.FilterSPRResultsFunc
 	sprFilterInputs *filter.SPRInputs
-	pipUpdateFunc pip.PointInPolygonToolUpdateCallback	
+	pipUpdateFunc   pip.PointInPolygonToolUpdateCallback
 }
 
 func NewApplicationOptionsFromCommandLine(ctx context.Context) (*ApplicationOptions, *ApplicationPaths, error) {
@@ -202,12 +202,11 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 	}
 
 	update_cb := opts.PIPUpdateFunc
-	
-	if update_cb == nil {
 
-		update_cb = pip.DefaultPointInPolygonToolUpdateCallback(spatial_db)
+	if update_cb == nil {
+		update_cb = pip.DefaultPointInPolygonToolUpdateCallback()
 	}
-	
+
 	tool, err := pip.NewPointInPolygonTool(ctx, spatial_db, ms_client)
 
 	if err != nil {
@@ -223,7 +222,7 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		writer:          wr,
 		sprFilterInputs: opts.SPRFilterInputs,
 		sprResultsFunc:  opts.SPRResultsFunc,
-		pipUpdateFunc: update_cb,
+		pipUpdateFunc:   update_cb,
 	}
 
 	return app, nil

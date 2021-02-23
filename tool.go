@@ -24,11 +24,11 @@ type PointInPolygonTool struct {
 	Mapshaper *mapshaper.Client
 }
 
-type PointInPolygonToolUpdateCallback func(context.Context, spr.StandardPlacesResult) (map[string]interface{}, error)
+type PointInPolygonToolUpdateCallback func(context.Context, reader.Reader, spr.StandardPlacesResult) (map[string]interface{}, error)
 
-func DefaultPointInPolygonToolUpdateCallback(r reader.Reader) PointInPolygonToolUpdateCallback {
+func DefaultPointInPolygonToolUpdateCallback() PointInPolygonToolUpdateCallback {
 
-	fn := func(ctx context.Context, parent_spr spr.StandardPlacesResult) (map[string]interface{}, error) {
+	fn := func(ctx context.Context, r reader.Reader, parent_spr spr.StandardPlacesResult) (map[string]interface{}, error) {
 
 		to_update := make(map[string]interface{})
 
@@ -92,7 +92,7 @@ func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, inputs
 		return nil, err
 	}
 
-	to_assign, err := update_cb(ctx, parent_spr)
+	to_assign, err := update_cb(ctx, t.Database, parent_spr)
 
 	if err != nil {
 		return nil, err
