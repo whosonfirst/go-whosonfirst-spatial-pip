@@ -8,7 +8,8 @@ import (
 	"github.com/sfomuseum/go-sfomuseum-mapshaper"
 	"github.com/skelterjohn/geom"
 	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
+	"github.com/whosonfirst/go-reader"
+	"github.com/whosonfirst/go-whosonfirst-export/v2"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/whosonfirst"
 	"github.com/whosonfirst/go-whosonfirst-placetypes"
 	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
@@ -23,6 +24,50 @@ type PointInPolygonTool struct {
 	Mapshaper *mapshaper.Client
 }
 
+type PointInPolygonToolUpdateCallback func(context.Context, spr.StandardPlacesResult) (map[string]interface{}, error)
+
+func DefaultPointInPolygonToolUpdateCallback(r reader.Reader) PointInPolygonToolUpdateCallback {
+
+	fn := func(ctx context.Context, parent_spr spr.StandardPlacesResult) (map[string]interface{}, error) {
+
+		to_update := make(map[string]interface{})
+
+		if parent_spr == nil {
+
+			to_update = map[string]interface{}{
+				"properties.wof:parent_id": -1,
+			}
+
+		} else {
+
+			parent_id, err := strconv.ParseInt(parent_spr.Id(), 10, 64)
+
+			if err != nil {
+				return nil, err
+			}
+
+			parent_f, err := wof_reader.LoadFeatureFromID(ctx, r, parent_id)
+
+			if err != nil {
+				return nil, err
+			}
+
+			parent_hierarchy := whosonfirst.Hierarchies(parent_f)
+			parent_country := whosonfirst.Country(parent_f)
+
+			to_update = map[string]interface{}{
+				"properties.wof:parent_id": parent_id,
+				"properties.wof:country":   parent_country,
+				"properties.wof:hierarchy": parent_hierarchy,
+			}
+		}
+
+		return to_update, nil
+	}
+
+	return fn
+}
+
 func NewPointInPolygonTool(ctx context.Context, spatial_db database.SpatialDatabase, ms_client *mapshaper.Client) (*PointInPolygonTool, error) {
 
 	t := &PointInPolygonTool{
@@ -33,9 +78,7 @@ func NewPointInPolygonTool(ctx context.Context, spatial_db database.SpatialDatab
 	return t, nil
 }
 
-func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, inputs *filter.SPRInputs, results_cb FilterSPRResultsFunc, body []byte) ([]byte, error) {
-
-	// START OF how to be forgiving
+func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, inputs *filter.SPRInputs, results_cb FilterSPRResultsFunc, update_cb PointInPolygonToolUpdateCallback, body []byte) ([]byte, error) {
 
 	possible, err := t.PointInPolygon(ctx, inputs, body)
 
@@ -49,50 +92,15 @@ func (t *PointInPolygonTool) PointInPolygonAndUpdate(ctx context.Context, inputs
 		return nil, err
 	}
 
-	// END OF how to be forgiving
+	to_assign, err := update_cb(ctx, parent_spr)
 
-	// START OF sudo put me a separate function for interpreting parent_spr
-	// results and figuring out what to update based on things like wof:controlled, etc.
-	// Basically all of the logic in whosonfirst/py-mapzen-whosonfirst-hierarchy
-	// (20210219/thisisaaronland)
-
-	to_update := make(map[string]interface{})
-
-	if parent_spr == nil {
-
-		to_update = map[string]interface{}{
-			"properties.wof:parent_id": -1,
-		}
-
-	} else {
-
-		parent_id, err := strconv.ParseInt(parent_spr.Id(), 10, 64)
-
-		if err != nil {
-			return nil, err
-		}
-
-		parent_f, err := wof_reader.LoadFeatureFromID(ctx, t.Database, parent_id)
-
-		if err != nil {
-			return nil, err
-		}
-
-		parent_hierarchy := whosonfirst.Hierarchies(parent_f)
-		parent_country := whosonfirst.Country(parent_f)
-
-		to_update = map[string]interface{}{
-			"properties.wof:parent_id": parent_id,
-			"properties.wof:country":   parent_country,
-			"properties.wof:hierarchy": parent_hierarchy,
-		}
+	if err != nil {
+		return nil, err
 	}
 
-	// END OF sudo put me a separate function for interpreting parent_spr
+	if to_assign != nil {
 
-	for path, v := range to_update {
-
-		body, err = sjson.SetBytes(body, path, v)
+		body, err = export.AssignProperties(ctx, body, to_assign)
 
 		if err != nil {
 			return nil, err

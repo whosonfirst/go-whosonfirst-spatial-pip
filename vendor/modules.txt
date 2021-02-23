@@ -37,6 +37,7 @@ github.com/paulmach/orb/geojson
 github.com/paulmach/orb/internal/length
 github.com/paulmach/orb/planar
 # github.com/sfomuseum/go-edtf v0.2.2
+## explicit
 github.com/sfomuseum/go-edtf
 github.com/sfomuseum/go-edtf/calendar
 github.com/sfomuseum/go-edtf/common
@@ -81,7 +82,7 @@ github.com/whosonfirst/go-sanitize
 github.com/whosonfirst/go-spatialite
 # github.com/whosonfirst/go-whosonfirst-crawl v0.2.1
 github.com/whosonfirst/go-whosonfirst-crawl
-# github.com/whosonfirst/go-whosonfirst-export/v2 v2.0.0
+# github.com/whosonfirst/go-whosonfirst-export/v2 v2.1.0
 ## explicit
 github.com/whosonfirst/go-whosonfirst-export/v2
 github.com/whosonfirst/go-whosonfirst-export/v2/properties

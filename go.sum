@@ -169,6 +169,8 @@ github.com/whosonfirst/go-whosonfirst-crawl v0.2.1/go.mod h1:MTD1TCgAkXlAtysPU98
 github.com/whosonfirst/go-whosonfirst-export v0.4.0 h1:d+2V+wGjRH2ldCLCFb/JTl2jYGEBxSaWZlwDDeWfI8U=
 github.com/whosonfirst/go-whosonfirst-export/v2 v2.0.0 h1:xxrZUyNOAuMeNrUvXgQtTSde/Z2nS0AKHqqfhYRmhjs=
 github.com/whosonfirst/go-whosonfirst-export/v2 v2.0.0/go.mod h1:hLZ4MkFDW5hy1hskAkWp41ix49f0/euccCMFO1d29m0=
+github.com/whosonfirst/go-whosonfirst-export/v2 v2.1.0 h1:5l3x4LmvW4rI6K4GeEclbZHlhBXXoobOm9Xi4W1Ivi4=
+github.com/whosonfirst/go-whosonfirst-export/v2 v2.1.0/go.mod h1:hLZ4MkFDW5hy1hskAkWp41ix49f0/euccCMFO1d29m0=
 github.com/whosonfirst/go-whosonfirst-flags v0.1.0 h1:llb2wtsI2y+gHZCmWaamMCx4YDRE8ZXQRRYqC7qB4so=
 github.com/whosonfirst/go-whosonfirst-flags v0.1.0/go.mod h1:bovMiQphaVhqemXFmNVf9Ts0tqnWtzHRFMUSKX+zTE8=
 github.com/whosonfirst/go-whosonfirst-flags v0.2.0 h1:zia/L+rhKSQ5iruITPnwU9lqsd1SavvF+HYRubEARSs=

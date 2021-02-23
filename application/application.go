@@ -36,8 +36,9 @@ type ApplicationOptions struct {
 	SpatialDatabaseURI string
 	ToIterator         string
 	FromIterator       string
-	SPRResultsFunc     pip.FilterSPRResultsFunc
-	SPRFilterInputs    *filter.SPRInputs
+		SPRFilterInputs    *filter.SPRInputs
+	SPRResultsFunc     pip.FilterSPRResultsFunc		// This one chooses one result among many (or nil)
+	PIPUpdateFunc pip.PointInPolygonToolUpdateCallback	// This one constructs a map[string]interface{} to update the target record (or not) 
 }
 
 type ApplicationPaths struct {
@@ -54,6 +55,7 @@ type Application struct {
 	spatial_db      database.SpatialDatabase
 	sprResultsFunc  pip.FilterSPRResultsFunc
 	sprFilterInputs *filter.SPRInputs
+	pipUpdateFunc pip.PointInPolygonToolUpdateCallback	
 }
 
 func NewApplicationOptionsFromCommandLine(ctx context.Context) (*ApplicationOptions, *ApplicationPaths, error) {
@@ -199,6 +201,13 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		ms_client = client
 	}
 
+	update_cb := opts.PIPUpdateFunc
+	
+	if update_cb == nil {
+
+		update_cb = pip.DefaultPointInPolygonToolUpdateCallback(spatial_db)
+	}
+	
 	tool, err := pip.NewPointInPolygonTool(ctx, spatial_db, ms_client)
 
 	if err != nil {
@@ -214,6 +223,7 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		writer:          wr,
 		sprFilterInputs: opts.SPRFilterInputs,
 		sprResultsFunc:  opts.SPRResultsFunc,
+		pipUpdateFunc: update_cb,
 	}
 
 	return app, nil
@@ -221,20 +231,18 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 
 func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error {
 
-	// TO DO: DEFINE iterator callbacks on the fly here rather
-	// than the constructor above - this is so that the PIP iterator
-	// can call `app.UpdateFeature` where it can't above because
-	// `app` doesn't exist yet...
-	// (20210219/thisisaaronland)
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	// These are the data we are indexing to PIP from
 
 	err := app.IndexSpatialDatabase(ctx, paths.From...)
 
 	if err != nil {
 		return err
 	}
+
+	// These are the data we are PIP-ing
 
 	to_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
 
@@ -258,8 +266,6 @@ func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error 
 
 		return nil
 	}
-
-	// These are the data we are PIP-ing
 
 	to_iter, err := iterator.NewIterator(ctx, app.to, to_cb)
 
@@ -326,7 +332,7 @@ func (app *Application) UpdateAndPublishFeature(ctx context.Context, body []byte
 
 func (app *Application) UpdateFeature(ctx context.Context, body []byte) ([]byte, error) {
 
-	return app.tool.PointInPolygonAndUpdate(ctx, app.sprFilterInputs, app.sprResultsFunc, body)
+	return app.tool.PointInPolygonAndUpdate(ctx, app.sprFilterInputs, app.sprResultsFunc, app.pipUpdateFunc, body)
 }
 
 func (app *Application) PublishFeature(ctx context.Context, body []byte) ([]byte, error) {
