@@ -4,13 +4,18 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/sfomuseum/go-edtf"
 	"github.com/sfomuseum/go-flags/multi"
 	"github.com/sfomuseum/go-sfomuseum-mapshaper"
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 	"github.com/whosonfirst/go-whosonfirst-export/v2"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/feature"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/geometry"
+	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/whosonfirst"
 	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"
 	"github.com/whosonfirst/go-whosonfirst-iterate/iterator"
+	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
 	"github.com/whosonfirst/go-whosonfirst-spatial-pip"
 	"github.com/whosonfirst/go-whosonfirst-spatial/database"
 	"github.com/whosonfirst/go-whosonfirst-spatial/filter"
@@ -336,6 +341,111 @@ func (app *Application) PublishFeature(ctx context.Context, body []byte) ([]byte
 
 	if err != nil {
 		return nil, err
+	}
+
+	return new_body, nil
+}
+
+// UNTESTED
+
+func (app *Application) WranglePIP(ctx context.Context, old_body []byte, pip_body []byte) ([]byte, error) {
+
+	pip_parent_rsp := gjson.GetBytes(pip_body, "properties.wof:parent_id")
+
+	if !pip_parent_rsp.Exists() {
+		return nil, fmt.Errorf("Missing wof:parent_id")
+	}
+
+	pip_parent_id := pip_parent_rsp.Int()
+
+	old_parent_rsp := gjson.GetBytes(old_body, "properties.wof:parent_id")
+
+	if !old_parent_rsp.Exists() {
+		return nil, fmt.Errorf("Missing wof:parent_id")
+	}
+
+	old_parent_id := old_parent_rsp.Int()
+
+	if old_parent_id == pip_parent_id {
+		return nil, nil
+	}
+
+	// Parent ID is different so we clone the old record, update the new record
+	// as necesasary and supersede the former with the latter
+
+	var new_body []byte
+	var new_id int64
+
+	old_id_rsp := gjson.GetBytes(old_body, "properties.wof:id")
+
+	if !old_id_rsp.Exists() {
+		return nil, fmt.Errorf("Missing wof:id")
+	}
+
+	old_id := old_id_rsp.Int()
+
+	pip_parent_f, err := wof_reader.LoadFeatureFromID(ctx, app.spatial_db, pip_parent_id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	pip_parent_inception := whosonfirst.Inception(pip_parent_f)
+	pip_parent_hierarchy := whosonfirst.Hierarchies(pip_parent_f)
+
+	new_body = old_body
+
+	new_body, err = sjson.DeleteBytes(new_body, "properties.wof:id")
+
+	if err != nil {
+		return nil, err
+	}
+
+	new_body, err = app.exporter.Export(ctx, new_body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	id_rsp := gjson.GetBytes(new_body, "properties.wof:id")
+
+	if !id_rsp.Exists() {
+		return nil, fmt.Errorf("Missing wof:id")
+	}
+
+	new_id = id_rsp.Int()
+
+	old_updates := map[string]interface{}{
+		"properties.mz:is_current":     0,
+		"properties.wof:superseded_by": []int64{new_id},
+		"properties.edtf:cessation":    pip_parent_inception,
+	}
+
+	for k, v := range old_updates {
+
+		old_body, err = sjson.SetBytes(old_body, k, v)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	new_updates := map[string]interface{}{
+		"properties.wof:parent_id":  pip_parent_id,
+		"properties.wof:hierarchy":  pip_parent_hierarchy,
+		"properties.mz:is_current":  1,
+		"properties.edtf:inception": pip_parent_inception,
+		"properties.edtf:cessation": edtf.OPEN,
+		"properties.wof:supersedes": []int64{old_id},
+	}
+
+	for k, v := range new_updates {
+
+		new_body, err = sjson.SetBytes(new_body, k, v)
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return new_body, nil
