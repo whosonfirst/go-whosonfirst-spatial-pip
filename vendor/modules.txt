@@ -49,6 +49,7 @@ github.com/sfomuseum/go-edtf/re
 github.com/sfomuseum/go-edtf/tests
 # github.com/sfomuseum/go-flags v0.7.0
 ## explicit
+github.com/sfomuseum/go-flags/flagset
 github.com/sfomuseum/go-flags/multi
 # github.com/sfomuseum/go-sfomuseum-mapshaper v0.0.0-20210212000251-b549bd7322c4
 ## explicit
