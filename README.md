@@ -22,7 +22,9 @@ func main() {
 
 	ctx := context.Background()
 
-	opts, paths, _ := application.NewApplicationOptionsFromCommandLine(ctx)
+	fs, _ := application.NewApplicationFlagSet(ctx)
+	opts, paths, _ := application.NewApplicationOptionsFromFlagSet(ctx, fs
+	)
 	app, _ := application.NewApplication(ctx, opts)
 	app.Run(ctx, paths)
 }

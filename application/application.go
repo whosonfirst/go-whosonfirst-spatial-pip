@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/sfomuseum/go-edtf"
-	"github.com/sfomuseum/go-flags/multi"
+	"github.com/sfomuseum/go-flags/flagset"
 	"github.com/sfomuseum/go-sfomuseum-mapshaper"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -23,7 +23,6 @@ import (
 	"github.com/whosonfirst/go-writer"
 	"io"
 	_ "log"
-	"os"
 )
 
 type ApplicationOptions struct {
@@ -58,47 +57,9 @@ type Application struct {
 	pipUpdateFunc   pip.PointInPolygonToolUpdateCallback
 }
 
-func NewApplicationOptionsFromCommandLine(ctx context.Context) (*ApplicationOptions, *ApplicationPaths, error) {
+func NewApplicationOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*ApplicationOptions, *ApplicationPaths, error) {
 
-	iterator_uri := flag.String("iterator-uri", "repo://", "A valid whosonfirst/go-whosonfirst-iterate/emitter URI scheme. This is used to identify WOF records to be PIP-ed.")
-
-	exporter_uri := flag.String("exporter-uri", "whosonfirst://", "A valid whosonfirst/go-whosonfirst-export URI.")
-	writer_uri := flag.String("writer-uri", "null://", "A valid whosonfirst/go-writer URI. This is where updated records will be written to.")
-
-	spatial_database_uri := flag.String("spatial-database-uri", "", "A valid whosonfirst/go-whosonfirst-spatial URI. This is the database of spatial records that will for PIP-ing.")
-	spatial_iterator_uri := flag.String("spatial-iterator-uri", "repo://", "A valid whosonfirst/go-whosonfirst-iterate/emitter URI scheme. This is used to identify WOF records to be indexed in the spatial database.")
-
-	var spatial_paths multi.MultiString
-	flag.Var(&spatial_paths, "spatial-source", "One or more URIs to be indexed in the spatial database (used for PIP-ing).")
-
-	// As in github:sfomuseum/go-sfomuseum-mapshaper and github:sfomuseum/docker-sfomuseum-mapshaper
-	// One day the functionality exposed here will be ported to Go and this won't be necessary
-
-	mapshaper_server := flag.String("mapshaper-server", "http://localhost:8080", "A valid HTTP URI pointing to a sfomuseum/go-sfomuseum-mapshaper server endpoint.")
-
-	var is_current multi.MultiString
-	flag.Var(&is_current, "is-current", "One or more existential flags (-1, 0, 1) to filter PIP results.")
-
-	var is_ceased multi.MultiString
-	flag.Var(&is_ceased, "is-ceased", "One or more existential flags (-1, 0, 1) to filter PIP results.")
-
-	var is_deprecated multi.MultiString
-	flag.Var(&is_deprecated, "is-deprecated", "One or more existential flags (-1, 0, 1) to filter PIP results.")
-
-	var is_superseded multi.MultiString
-	flag.Var(&is_superseded, "is-superseded", "One or more existential flags (-1, 0, 1) to filter PIP results.")
-
-	var is_superseding multi.MultiString
-	flag.Var(&is_superseding, "is-superseding", "One or more existential flags (-1, 0, 1) to filter PIP results.")
-
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Perform point-in-polygon (PIP), and related update, operations on a set of Who's on First records.\n")
-		fmt.Fprintf(os.Stderr, "Usage:\n\t %s [options] uri(N) uri(N)\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "Valid options are:\n\n")
-		flag.PrintDefaults()
-	}
-
-	flag.Parse()
+	flagset.Parse(fs)
 
 	inputs := &filter.SPRInputs{}
 
@@ -109,17 +70,17 @@ func NewApplicationOptionsFromCommandLine(ctx context.Context) (*ApplicationOpti
 	inputs.IsSuperseding = is_superseding
 
 	opts := &ApplicationOptions{
-		WriterURI:          *writer_uri,
-		ExporterURI:        *exporter_uri,
-		SpatialDatabaseURI: *spatial_database_uri,
-		MapshaperServerURI: *mapshaper_server,
+		WriterURI:          writer_uri,
+		ExporterURI:        exporter_uri,
+		SpatialDatabaseURI: spatial_database_uri,
+		MapshaperServerURI: mapshaper_server,
 		SPRResultsFunc:     pip.FirstButForgivingSPRResultsFunc, // sudo make me configurable
 		SPRFilterInputs:    inputs,
-		ToIterator:         *iterator_uri,
-		FromIterator:       *spatial_iterator_uri,
+		ToIterator:         iterator_uri,
+		FromIterator:       spatial_iterator_uri,
 	}
 
-	pip_paths := flag.Args()
+	pip_paths := fs.Args()
 
 	paths := &ApplicationPaths{
 		To:   pip_paths,

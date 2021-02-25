@@ -15,7 +15,13 @@ func main() {
 
 	ctx := context.Background()
 
-	opts, paths, err := application.NewApplicationOptionsFromCommandLine(ctx)
+	fs, err := application.NewApplicationFlagSet(ctx)
+
+	if err != nil {
+		log.Fatalf("Failed to create application flag set, %v", err)
+	}
+
+	opts, paths, err := application.NewApplicationOptionsFromFlagSet(ctx, fs)
 
 	if err != nil {
 		log.Fatalf("Failed to create new PIP application opts, %v", err)
