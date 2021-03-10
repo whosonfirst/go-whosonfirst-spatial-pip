@@ -1,11 +1,6 @@
 package main
 
 import (
-	_ "github.com/whosonfirst/go-whosonfirst-spatial-sqlite"
-	_ "github.com/whosonfirst/go-writer-featurecollection"
-)
-
-import (
 	"context"
 	"github.com/whosonfirst/go-whosonfirst-spatial-pip/update"
 	"log"

@@ -1,10 +1,6 @@
 package main
 
 import (
-	_ "github.com/whosonfirst/go-whosonfirst-spatial-sqlite"
-)
-
-import (
 	"context"
 	"github.com/whosonfirst/go-whosonfirst-spatial-pip/query"
 	"log"
