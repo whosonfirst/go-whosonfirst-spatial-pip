@@ -31,7 +31,13 @@ func (app *QueryApplication) RunWithFlagSet(ctx context.Context, fs *flag.FlagSe
 
 	flagset.Parse(fs)
 
-	err := flags.ValidateCommonFlags(fs)
+	err := flagset.SetFlagsFromEnvVars(fs, "PIP")
+
+	if err != nil {
+		return err
+	}
+	
+	err = flags.ValidateCommonFlags(fs)
 
 	if err != nil {
 		return err
