@@ -26,7 +26,7 @@ var is_deprecated multi.MultiString
 var is_superseded multi.MultiString
 var is_superseding multi.MultiString
 
-func NewApplicationFlagSet(ctx context.Context) (*flag.FlagSet, error) {
+func NewUpdateApplicationFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs := flagset.NewFlagSet("pip")
 

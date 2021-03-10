@@ -7,7 +7,7 @@ import (
 
 import (
 	"context"
-	"github.com/whosonfirst/go-whosonfirst-spatial-pip/application/update"
+	"github.com/whosonfirst/go-whosonfirst-spatial-pip/update"
 	"log"
 )
 

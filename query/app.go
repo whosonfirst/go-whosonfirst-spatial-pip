@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"flag"
 	"github.com/aaronland/go-http-server"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/sfomuseum/go-flags/flagset"
@@ -25,6 +26,10 @@ type QueryApplication struct {
 }
 
 type QueryApplicationOptions struct {
+	SpatialDatabase string
+	PropertiesReader string
+	Mode string
+	ServerURI string
 }
 
 func NewQueryApplicationOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*QueryApplicationOptions, error) {
@@ -62,7 +67,7 @@ func NewQueryApplicationOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet
 	database_uri, _ := flags.StringVar(fs, "spatial-database-uri")
 	properties_uri, _ := flags.StringVar(fs, "properties-reader-uri")
 
-	opts := QueryApplicationOptions{
+	opts := &QueryApplicationOptions{
 		SpatialDatabase:  database_uri,
 		PropertiesReader: properties_uri,
 		ServerURI:        *server_uri,
@@ -88,7 +93,7 @@ func NewQueryApplication(ctx context.Context, opts *QueryApplicationOptions) (*Q
 
 	if opts.PropertiesReader != "" {
 
-		pr, err := properties.NewPropertiesReader(ctx, properties_uri)
+		pr, err := properties.NewPropertiesReader(ctx, opts.PropertiesReader)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to create properties reader, %v", err)
@@ -118,7 +123,7 @@ func (app *QueryApplication) Run(ctx context.Context) error {
 
 		var rsp interface{}
 
-		r, err := app.spatial_database.PointInPolygon(ctx, c, f)
+		r, err := app.spatial_db.PointInPolygon(ctx, c, f)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to query database with coord %v, %v", c, err)
@@ -132,7 +137,7 @@ func (app *QueryApplication) Run(ctx context.Context) error {
 				return nil, fmt.Errorf("Failed to create properties reader, %v", err)
 			}
 
-			r, err := pr.PropertiesResponseResultsWithStandardPlacesResults(ctx, rsp.(spr.StandardPlacesResults), req.Properties)
+			r, err := app.properties_reader.PropertiesResponseResultsWithStandardPlacesResults(ctx, rsp.(spr.StandardPlacesResults), req.Properties)
 
 			if err != nil {
 				return nil, fmt.Errorf("Failed to generate properties response, %v", err)
@@ -148,6 +153,8 @@ func (app *QueryApplication) Run(ctx context.Context) error {
 
 	case "cli":
 
+		var fs *flag.FlagSet	// FIX ME
+		
 		req, err := api.NewPointInPolygonRequestFromFlagSet(fs)
 
 		if err != nil {
@@ -211,7 +218,7 @@ func (app *QueryApplication) Run(ctx context.Context) error {
 		s, err := server.NewServer(ctx, app.server_uri)
 
 		if err != nil {
-			return fmt.Errorf("Failed to create server for '%s', %v", *server_uri, err)
+			return fmt.Errorf("Failed to create server for '%s', %v", app.server_uri, err)
 		}
 
 		log.Printf("Listening for requests at %s\n", s.Address())
@@ -219,11 +226,11 @@ func (app *QueryApplication) Run(ctx context.Context) error {
 		err = s.ListenAndServe(ctx, mux)
 
 		if err != nil {
-			return fmt.Errorf("Failed to serve requests for '%s', %v", *server_uri, err)
+			return fmt.Errorf("Failed to serve requests for '%s', %v", app.server_uri, err)
 		}
 
 	default:
-		return fmt.Errorf("Invalid or unsupported mode '%s'", *mode)
+		return fmt.Errorf("Invalid or unsupported mode '%s'", app.mode)
 	}
 
 	return nil
