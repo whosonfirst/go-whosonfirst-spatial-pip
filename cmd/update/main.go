@@ -7,7 +7,7 @@ import (
 
 import (
 	"context"
-	"github.com/whosonfirst/go-whosonfirst-spatial-pip/application"
+	"github.com/whosonfirst/go-whosonfirst-spatial-pip/application/update"
 	"log"
 )
 
@@ -15,19 +15,19 @@ func main() {
 
 	ctx := context.Background()
 
-	fs, err := application.NewApplicationFlagSet(ctx)
+	fs, err := update.NewUpdateApplicationFlagSet(ctx)
 
 	if err != nil {
 		log.Fatalf("Failed to create application flag set, %v", err)
 	}
 
-	opts, paths, err := application.NewApplicationOptionsFromFlagSet(ctx, fs)
+	opts, paths, err := update.NewUpdateApplicationOptionsFromFlagSet(ctx, fs)
 
 	if err != nil {
 		log.Fatalf("Failed to create new PIP application opts, %v", err)
 	}
 
-	app, err := application.NewApplication(ctx, opts)
+	app, err := update.NewUpdateApplication(ctx, opts)
 
 	if err != nil {
 		log.Fatalf("Failed to create new PIP application, %v", err)

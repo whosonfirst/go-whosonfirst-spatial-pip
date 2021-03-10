@@ -1,4 +1,4 @@
-package application
+package update
 
 import (
 	"context"
@@ -25,7 +25,7 @@ import (
 	_ "log"
 )
 
-type ApplicationOptions struct {
+type UpdateApplicationOptions struct {
 	Writer             writer.Writer
 	WriterURI          string
 	Exporter           export.Exporter
@@ -40,12 +40,12 @@ type ApplicationOptions struct {
 	PIPUpdateFunc      pip.PointInPolygonToolUpdateCallback // This one constructs a map[string]interface{} to update the target record (or not)
 }
 
-type ApplicationPaths struct {
+type UpdateApplicationPaths struct {
 	To   []string
 	From []string
 }
 
-type Application struct {
+type UpdateApplication struct {
 	to              string
 	from            string
 	tool            *pip.PointInPolygonTool
@@ -57,7 +57,7 @@ type Application struct {
 	pipUpdateFunc   pip.PointInPolygonToolUpdateCallback
 }
 
-func NewApplicationOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*ApplicationOptions, *ApplicationPaths, error) {
+func NewUpdateApplicationOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*UpdateApplicationOptions, *UpdateApplicationPaths, error) {
 
 	flagset.Parse(fs)
 
@@ -69,7 +69,7 @@ func NewApplicationOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*A
 	inputs.IsSuperseded = is_superseded
 	inputs.IsSuperseding = is_superseding
 
-	opts := &ApplicationOptions{
+	opts := &UpdateApplicationOptions{
 		WriterURI:          writer_uri,
 		ExporterURI:        exporter_uri,
 		SpatialDatabaseURI: spatial_database_uri,
@@ -82,7 +82,7 @@ func NewApplicationOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*A
 
 	pip_paths := fs.Args()
 
-	paths := &ApplicationPaths{
+	paths := &UpdateApplicationPaths{
 		To:   pip_paths,
 		From: spatial_paths,
 	}
@@ -90,7 +90,7 @@ func NewApplicationOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*A
 	return opts, paths, nil
 }
 
-func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application, error) {
+func NewUpdateApplication(ctx context.Context, opts *UpdateApplicationOptions) (*UpdateApplication, error) {
 
 	var ex export.Exporter
 	var wr writer.Writer
@@ -174,7 +174,7 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 		return nil, fmt.Errorf("Failed to create PIP tool, %v", err)
 	}
 
-	app := &Application{
+	app := &UpdateApplication{
 		to:              opts.ToIterator,
 		from:            opts.FromIterator,
 		spatial_db:      spatial_db,
@@ -189,7 +189,7 @@ func NewApplication(ctx context.Context, opts *ApplicationOptions) (*Application
 	return app, nil
 }
 
-func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error {
+func (app *UpdateApplication) Run(ctx context.Context, paths *UpdateApplicationPaths) error {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -246,7 +246,7 @@ func (app *Application) Run(ctx context.Context, paths *ApplicationPaths) error 
 	return app.writer.Close(ctx)
 }
 
-func (app *Application) IndexSpatialDatabase(ctx context.Context, uris ...string) error {
+func (app *UpdateApplication) IndexSpatialDatabase(ctx context.Context, uris ...string) error {
 
 	from_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
 
@@ -279,7 +279,7 @@ func (app *Application) IndexSpatialDatabase(ctx context.Context, uris ...string
 	return nil
 }
 
-func (app *Application) UpdateAndPublishFeature(ctx context.Context, body []byte) ([]byte, error) {
+func (app *UpdateApplication) UpdateAndPublishFeature(ctx context.Context, body []byte) ([]byte, error) {
 
 	new_body, err := app.UpdateFeature(ctx, body)
 
@@ -290,12 +290,12 @@ func (app *Application) UpdateAndPublishFeature(ctx context.Context, body []byte
 	return app.PublishFeature(ctx, new_body)
 }
 
-func (app *Application) UpdateFeature(ctx context.Context, body []byte) ([]byte, error) {
+func (app *UpdateApplication) UpdateFeature(ctx context.Context, body []byte) ([]byte, error) {
 
 	return app.tool.PointInPolygonAndUpdate(ctx, app.sprFilterInputs, app.sprResultsFunc, app.pipUpdateFunc, body)
 }
 
-func (app *Application) PublishFeature(ctx context.Context, body []byte) ([]byte, error) {
+func (app *UpdateApplication) PublishFeature(ctx context.Context, body []byte) ([]byte, error) {
 
 	new_body, err := app.exporter.Export(ctx, body)
 
@@ -314,7 +314,7 @@ func (app *Application) PublishFeature(ctx context.Context, body []byte) ([]byte
 
 // UNTESTED
 
-func (app *Application) WranglePIP(ctx context.Context, old_body []byte, pip_body []byte) ([]byte, error) {
+func (app *UpdateApplication) WranglePIP(ctx context.Context, old_body []byte, pip_body []byte) ([]byte, error) {
 
 	pip_parent_rsp := gjson.GetBytes(pip_body, "properties.wof:parent_id")
 
