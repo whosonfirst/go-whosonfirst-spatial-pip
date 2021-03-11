@@ -116,54 +116,10 @@ $> ./bin/query \
 	-longitude -122.383747 \
 	-is-current 1
 
-| jq
+| jq '.["places"][]["wof:id"]'
 
-{
-  "places": [
-    {
-      "wof:id": "1729792433",
-      "wof:parent_id": "1729792389",
-      "wof:name": "Terminal 2 Main Hall",
-      "wof:country": "US",
-      "wof:placetype": "concourse",
-      "mz:latitude": 37.617044,
-      "mz:longitude": -122.383533,
-      "mz:min_latitude": 37.61556454299907,
-      "mz:min_longitude": 37.617044,
-      "mz:max_latitude": -122.3849539833859,
-      "mz:max_longitude": -122.38296693570045,
-      "mz:is_current": 1,
-      "mz:is_deprecated": 0,
-      "mz:is_ceased": 1,
-      "mz:is_superseded": 0,
-      "mz:is_superseding": 1,
-      "wof:path": "172/979/243/3/1729792433.geojson",
-      "wof:repo": "sfomuseum-data-architecture",
-      "wof:lastmodified": 1612909946
-    },
-    {
-      "wof:id": "1729792685",
-      "wof:parent_id": "1729792389",
-      "wof:name": "Terminal Two Arrivals",
-      "wof:country": "XX",
-      "wof:placetype": "concourse",
-      "mz:latitude": 37.617036431454586,
-      "mz:longitude": -122.38394076589181,
-      "mz:min_latitude": 37.61603604049649,
-      "mz:min_longitude": 37.617036431454586,
-      "mz:max_latitude": -122.3848417563672,
-      "mz:max_longitude": -122.38330449541728,
-      "mz:is_current": 1,
-      "mz:is_deprecated": 0,
-      "mz:is_ceased": 1,
-      "mz:is_superseded": 0,
-      "mz:is_superseding": 0,
-      "wof:path": "172/979/268/5/1729792685.geojson",
-      "wof:repo": "sfomuseum-data-architecture",
-      "wof:lastmodified": 1612910034
-    }
-  ]
-}
+"1729792685"
+"1729792433"
 ```
 
 #### Server
@@ -175,53 +131,14 @@ $> ./bin/query -mode server -spatial-database-uri 'sqlite://?dsn=/usr/local/data
 And in another terminal:
 
 ```
-$> curl -s -XPOST http://localhost:8080/ -d '{"latitude":37.616951,"longitude":-122.383747,"is_current":[1]}' | jq
-{
-  "places": [
-    {
-      "wof:id": "1729792433",
-      "wof:parent_id": "1729792389",
-      "wof:name": "Terminal 2 Main Hall",
-      "wof:country": "US",
-      "wof:placetype": "concourse",
-      "mz:latitude": 37.617044,
-      "mz:longitude": -122.383533,
-      "mz:min_latitude": 37.61556454299907,
-      "mz:min_longitude": 37.617044,
-      "mz:max_latitude": -122.3849539833859,
-      "mz:max_longitude": -122.38296693570045,
-      "mz:is_current": 1,
-      "mz:is_deprecated": 0,
-      "mz:is_ceased": 1,
-      "mz:is_superseded": 0,
-      "mz:is_superseding": 1,
-      "wof:path": "172/979/243/3/1729792433.geojson",
-      "wof:repo": "sfomuseum-data-architecture",
-      "wof:lastmodified": 1612909946
-    },
-    {
-      "wof:id": "1729792685",
-      "wof:parent_id": "1729792389",
-      "wof:name": "Terminal Two Arrivals",
-      "wof:country": "XX",
-      "wof:placetype": "concourse",
-      "mz:latitude": 37.617036431454586,
-      "mz:longitude": -122.38394076589181,
-      "mz:min_latitude": 37.61603604049649,
-      "mz:min_longitude": 37.617036431454586,
-      "mz:max_latitude": -122.3848417563672,
-      "mz:max_longitude": -122.38330449541728,
-      "mz:is_current": 1,
-      "mz:is_deprecated": 0,
-      "mz:is_ceased": 1,
-      "mz:is_superseded": 0,
-      "mz:is_superseding": 0,
-      "wof:path": "172/979/268/5/1729792685.geojson",
-      "wof:repo": "sfomuseum-data-architecture",
-      "wof:lastmodified": 1612910034
-    }
-  ]
-}
+$> curl -s -XPOST \
+	http://localhost:8080/ \
+	-d '{"latitude":37.616951,"longitude":-122.383747,"is_current":[1]}' \
+
+| jq '.["places"][]["wof:id"]'
+
+"1729792685"
+"1729792433"
 ```
 
 #### Lambda (using container images)
@@ -238,7 +155,12 @@ time="2021-03-11T01:19:37.994" level=info msg="exec '/main' (cwd=/go, handler=)"
 And then in another terminal:
 
 ```
-$> curl -s -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"latitude":37.616951,"longitude":-122.383747,"is_current":[1]}' | jq '.["places"][]["wof:id"]'
+$> curl -s -XPOST \
+	"http://localhost:9000/2015-03-31/functions/function/invocations" \
+	-d '{"latitude":37.616951,"longitude":-122.383747,"is_current":[1]}' \
+
+| jq '.["places"][]["wof:id"]'
+
 "1729792685"
 "1729792433"
 ```
