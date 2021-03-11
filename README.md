@@ -4,7 +4,13 @@
 
 This is work in progress. Documentation to follow.
 
-## Example
+## Background
+
+This package exports point-in-polygon (PIP) applications using the `whosonfirst/go-whosonfirst-spatial` interfaces.
+
+The code in this package does not contain any specific implementation of those interfaces so when invoked on its own it won't work as expected.
+
+The code in this package is designed to be imported by _other_ code that also loads the relevant packages that implement the `whosonfirst/go-whosonfirst-spatial` interfaces. For example, here is the `query` application using the `whosonfirst/go-whosonfirst-spatial-sqlite` package. This application is part of the [go-whosonfirst-spatial-pip-sqlite](https://github.com/whosonfirst/go-whosonfirst-spatial-pip-sqlite) package:
 
 ```
 package main
@@ -15,64 +21,44 @@ import (
 
 import (
 	"context"
-	"github.com/whosonfirst/go-whosonfirst-spatial-pip/application"
+	"github.com/whosonfirst/go-whosonfirst-spatial-pip/query"
 )
 
 func main() {
 
 	ctx := context.Background()
 
-	fs, _ := application.NewApplicationFlagSet(ctx)
-	opts, paths, _ := application.NewApplicationOptionsFromFlagSet(ctx, fs
-	)
-	app, _ := application.NewApplication(ctx, opts)
-	app.Run(ctx, paths)
+	fs, _ := query.NewQueryApplicationFlagSet(ctx)
+	app, _ := query.NewQueryApplication(ctx)
+
+	app.RunWithFlagSet(ctx, fs)
 }
 ```
 
-_Error handling omitted for the sake of brevity._
+The idea is that this package defines code to implement opinionated applications without specifying an underlying database implementation (interface).
 
-## Concepts
+As of this writing this package exports two "applications":
 
-### "Spatial" databases
+* The "Query" application performs a basic point-in-polygon (PIP) query, with optional "standard places response" (SPR) filters.
 
-_To be written_
+* The "Update" application accepts a series of Who's On First (WOF) records and attempts to assign a "parent" ID and hierarchy by performing one or more PIP operations for that record's centroid and potential ancestors (derived from its placetype). If successful the application also tries to "write" the updated feature to a target that implements the `whosonfirst/go-writer` interface.
 
-### Iterators
+Although there is a substantial amount of overlap, conceptually, between the two applications not all those similarities have been reconciled. These include:
 
-_To be written_
+* The "Update" application will, optionally, attempt to populate (or index) a spatial database when it starts. The "Query" application does not yet.
 
-### Exporters
+* The "Query" application is designed to run in a number of different "modes". These are: As a command line application; As a standalone HTTP server; As an AWS Lambda function. The "Update" application currently only runs as a command line application.
 
-_To be written_
+## Applications
 
-### Writers
+_The examples shown here assume applications that have been built with the [whosonfirst/go-whosonfirst-spatial-sqlite](https://github.com/whosonfirst/go-whosonfirst-spatial-sqlite)._
 
-_To be written_
+### Query
 
-### Reverse geocoding centroids (and Mapshaper)
-
-_To be written_
-
-### (Point in polygon) Tools
-
-_To be written_
-
-### (Point in polygon) Applications
-
-_To be written_
-
-## Tools
+#### Command line
 
 ```
-$> make cli
-go build -mod vendor -o bin/point-in-polygon cmd/point-in-polygon/main.go
-```
-
-### query
-
-```
-./bin/query \
+$> ./bin/query \
 	-spatial-database-uri 'sqlite://?dsn=/usr/local/data/arch.db' \
 	-latitude 37.616951 \
 	-longitude -122.383747 \
@@ -128,12 +114,16 @@ go build -mod vendor -o bin/point-in-polygon cmd/point-in-polygon/main.go
 }
 ```
 
-### update
+#### Server
+
+#### Lambda
+
+### Update
 
 Perform point-in-polygon (PIP), and related update, operations on a set of Who's on First records.
 
 ```
-> ./bin/point-in-polygon -h
+$> ./bin/point-in-polygon -h
 Perform point-in-polygon (PIP), and related update, operations on a set of Who's on First records.
 Usage:
 	 ./bin/point-in-polygon [options] uri(N) uri(N)
@@ -165,7 +155,7 @@ Valid options are:
     	A valid whosonfirst/go-writer URI. This is where updated records will be written to. (default "null://")
 ```
 
-#### Example
+#### Command line
 
 For example:
 
