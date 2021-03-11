@@ -53,7 +53,7 @@ Both applications also use the `whosonfirst/go-whosonfirst-spatial/flags` packag
 
 ## Applications
 
-_The examples shown here assume applications that have been built with the [whosonfirst/go-whosonfirst-spatial-sqlite](https://github.com/whosonfirst/go-whosonfirst-spatial-sqlite)._
+_The examples shown here assume applications that have been built with the [whosonfirst/go-whosonfirst-spatial-sqlite](https://github.com/whosonfirst/go-whosonfirst-spatial-sqlite). Although there are sample applications bundled in this package's `examples` folder because they don't load anything that implements the `go-whosonfirst-spatial` interfaces they won't work. They are included as reference implementations._
 
 ### Query
 
