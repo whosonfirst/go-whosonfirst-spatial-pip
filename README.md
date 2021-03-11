@@ -49,11 +49,63 @@ Although there is a substantial amount of overlap, conceptually, between the two
 
 * The "Query" application is designed to run in a number of different "modes". These are: As a command line application; As a standalone HTTP server; As an AWS Lambda function. The "Update" application currently only runs as a command line application.
 
+Both applications also use the `whosonfirst/go-whosonfirst-spatial/flags` package for common "spatial" application flags. In practice this tends to be more confusing than not so that may change too.
+
 ## Applications
 
 _The examples shown here assume applications that have been built with the [whosonfirst/go-whosonfirst-spatial-sqlite](https://github.com/whosonfirst/go-whosonfirst-spatial-sqlite)._
 
 ### Query
+
+```
+$> ./bin/query -h
+  -alternate-geometry value
+    	One or more alternate geometry labels (wof:alt_label) values to filter results by.
+  -custom-placetypes string
+    	...
+  -custom-placetypes-source string
+    	...
+  -enable-custom-placetypes
+    	...
+  -enable-properties
+    	Enable support for 'properties' parameters in queries.
+  -exclude value
+    	Exclude (WOF) records based on their existential flags. Valid options are: ceased, deprecated, not-current, superseded.
+  -geometries string
+    	Valid options are: all, alt, default. (default "all")
+  -index-properties
+    	Index properties reader.
+  -is-ceased value
+    	One or more existential flags (-1, 0, 1) to filter results by.
+  -is-current value
+    	One or more existential flags (-1, 0, 1) to filter results by.
+  -is-deprecated value
+    	One or more existential flags (-1, 0, 1) to filter results by.
+  -is-superseded value
+    	One or more existential flags (-1, 0, 1) to filter results by.
+  -is-superseding value
+    	One or more existential flags (-1, 0, 1) to filter results by.
+  -is-wof
+    	Input data is WOF-flavoured GeoJSON. (Pass a value of '0' or 'false' if you need to index non-WOF documents. (default true)
+  -latitude float
+    	A valid latitude.
+  -longitude float
+    	A valid longitude.
+  -mode string
+    	... (default "cli")
+  -placetype value
+    	One or more place types to filter results by.
+  -properties value
+    	One or more Who's On First properties to append to each result.
+  -properties-reader-uri string
+    	Valid options are: [sqlite://]
+  -server-uri string
+    	... (default "http://localhost:8080")
+  -spatial-database-uri string
+    	Valid options are: [sqlite://] (default "rtree://")
+  -verbose
+    	Be chatty.
+```
 
 #### Command line
 
@@ -116,7 +168,121 @@ $> ./bin/query \
 
 #### Server
 
-#### Lambda
+```
+$> ./bin/query -mode server -spatial-database-uri 'sqlite://?dsn=/usr/local/data/arch.db'
+```
+
+And in another terminal:
+
+```
+$> curl -s -XPOST http://localhost:8080/ -d '{"latitude":37.616951,"longitude":-122.383747,"is_current":[1]}' | jq
+{
+  "places": [
+    {
+      "wof:id": "1729792433",
+      "wof:parent_id": "1729792389",
+      "wof:name": "Terminal 2 Main Hall",
+      "wof:country": "US",
+      "wof:placetype": "concourse",
+      "mz:latitude": 37.617044,
+      "mz:longitude": -122.383533,
+      "mz:min_latitude": 37.61556454299907,
+      "mz:min_longitude": 37.617044,
+      "mz:max_latitude": -122.3849539833859,
+      "mz:max_longitude": -122.38296693570045,
+      "mz:is_current": 1,
+      "mz:is_deprecated": 0,
+      "mz:is_ceased": 1,
+      "mz:is_superseded": 0,
+      "mz:is_superseding": 1,
+      "wof:path": "172/979/243/3/1729792433.geojson",
+      "wof:repo": "sfomuseum-data-architecture",
+      "wof:lastmodified": 1612909946
+    },
+    {
+      "wof:id": "1729792685",
+      "wof:parent_id": "1729792389",
+      "wof:name": "Terminal Two Arrivals",
+      "wof:country": "XX",
+      "wof:placetype": "concourse",
+      "mz:latitude": 37.617036431454586,
+      "mz:longitude": -122.38394076589181,
+      "mz:min_latitude": 37.61603604049649,
+      "mz:min_longitude": 37.617036431454586,
+      "mz:max_latitude": -122.3848417563672,
+      "mz:max_longitude": -122.38330449541728,
+      "mz:is_current": 1,
+      "mz:is_deprecated": 0,
+      "mz:is_ceased": 1,
+      "mz:is_superseded": 0,
+      "mz:is_superseding": 0,
+      "wof:path": "172/979/268/5/1729792685.geojson",
+      "wof:repo": "sfomuseum-data-architecture",
+      "wof:lastmodified": 1612910034
+    }
+  ]
+}
+```
+
+#### Lambda (using container images)
+
+##### Running locally
+
+_This assumes that you have packaged the `query` tool as a container image. For an example of this take a look at the [whosonfirst/go-whosonfirst-pip-sqlite](https://github.com/whosonfirst/go-whosonfirst-spatial-pip-sqlite) package. Note that the `go-whosonfirst-spatial-pip-sqlite` package bundles a SQLite database inside the container image itself._
+
+```
+$> docker run -e PIP_MODE=lambda -e PIP_SPATIAL_DATABASE_URI=sqlite://?dsn=/usr/local/data/query.db -p 9000:8080 point-in-polygon:latest /main
+time="2021-03-11T01:19:37.994" level=info msg="exec '/main' (cwd=/go, handler=)"
+```
+
+And then in another terminal:
+
+```
+$> curl -s -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"latitude":37.616951,"longitude":-122.383747,"is_current":[1]}' | jq '.["places"][]["wof:id"]'
+"1729792685"
+"1729792433"
+```
+
+##### Running in AWS
+
+Update your container (see above) to a your AWS ECS repository. Create a new AWS Lambda function and configure it to use your container.
+
+Ensure the following image configuration variables are assigned:
+
+| Name | Value |
+| --- | --- |
+| CMD override | /main |
+
+Ensure the following environment variables are assigned:
+
+| Name | Value |
+| --- | --- |
+| PIP_MODE | lambda |
+| PIP_SPATIAL_URI | sqlite://?dsn=/usr/local/data/query.db |
+
+Create a test like this and invoke it:
+
+```
+{
+  "latitude": 37.616951,
+  "longitude": -122.383747,
+  "is_current": [
+    1
+  ]
+}
+```
+
+##### Running in AWS with API Gateway
+
+Ensure the following environment variables are assigned:
+
+| Name | Value |
+| --- | --- |
+| PIP_MODE | server |
+| PIP_SERVER_URI | lambda:// |
+| PIP_SPATIAL_URI | sqlite://?dsn=/usr/local/data/query.db |
+
+_To be written_
 
 ### Update
 
