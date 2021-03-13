@@ -8,6 +8,7 @@ import (
 	"github.com/aaronland/go-http-server"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/sfomuseum/go-flags/flagset"
+	"github.com/sfomuseum/go-flags/lookup"
 	"github.com/whosonfirst/go-whosonfirst-spatial/api"
 	"github.com/whosonfirst/go-whosonfirst-spatial/database"
 	"github.com/whosonfirst/go-whosonfirst-spatial/flags"
@@ -36,7 +37,7 @@ func (app *QueryApplication) RunWithFlagSet(ctx context.Context, fs *flag.FlagSe
 	if err != nil {
 		return err
 	}
-	
+
 	err = flags.ValidateCommonFlags(fs)
 
 	if err != nil {
@@ -49,21 +50,21 @@ func (app *QueryApplication) RunWithFlagSet(ctx context.Context, fs *flag.FlagSe
 		return err
 	}
 
-	database_uri, _ := flags.StringVar(fs, "spatial-database-uri")
-	properties_uri, _ := flags.StringVar(fs, "properties-reader-uri")
+	database_uri, _ := lookup.StringVar(fs, "spatial-database-uri")
+	properties_uri, _ := lookup.StringVar(fs, "properties-reader-uri")
 
-	mode, err := flags.StringVar(fs, "mode")
+	mode, err := lookup.StringVar(fs, "mode")
 
 	if err != nil {
 		return err
 	}
 
-	server_uri, err := flags.StringVar(fs, "server-uri")
+	server_uri, err := lookup.StringVar(fs, "server-uri")
 
 	if err != nil {
 		return err
-	}	
-	
+	}
+
 	db, err := database.NewSpatialDatabase(ctx, database_uri)
 
 	if err != nil {

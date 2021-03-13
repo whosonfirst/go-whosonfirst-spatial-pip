@@ -20,11 +20,11 @@ var spatial_paths multi.MultiString
 
 var mapshaper_server string
 
-var is_current multi.MultiString
-var is_ceased multi.MultiString
-var is_deprecated multi.MultiString
-var is_superseded multi.MultiString
-var is_superseding multi.MultiString
+var is_current multi.MultiInt64
+var is_ceased multi.MultiInt64
+var is_deprecated multi.MultiInt64
+var is_superseded multi.MultiInt64
+var is_superseding multi.MultiInt64
 
 func NewUpdateApplicationFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
