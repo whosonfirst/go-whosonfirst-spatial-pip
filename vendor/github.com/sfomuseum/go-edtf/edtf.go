@@ -8,12 +8,7 @@ const UNCERTAIN string = "?"
 const APPROXIMATE string = "~"
 const UNCERTAIN_AND_APPROXIMATE string = "%"
 const OPEN string = ".."
-const OPEN_2012 string = "open"
-const UNSPECIFIED string = ""
-const UNSPECIFIED_2012 string = "uuuu"
-const UNKNOWN string = UNSPECIFIED // this code was incorrectly referring to "unspecified" as "unknown"
-const UNKNOWN_2012 string = UNSPECIFIED_2012
-
+const UNKNOWN string = ""
 const NEGATIVE string = "-"
 
 const HMS_LOWER string = "00:00:00"

@@ -198,42 +198,16 @@ func (f *WOFFeature) SPR() (spr.StandardPlacesResult, error) {
 	inception := whosonfirst.Inception(f)
 	cessation := whosonfirst.Cessation(f)
 
-	// See this: We're accounting for all the pre-2019 EDTF spec
-	// inception but mostly cessation strings by silently swapping
-	// them out (20210321/straup)
-
 	_, err := parser.ParseString(inception)
 
 	if err != nil {
-
-		if !isDeprecatedEDTF(inception) {
-			return nil, err
-		}
-
-		replacement, err := replaceDeprecatedEDTF(inception)
-
-		if err != nil {
-			return nil, err
-		}
-
-		inception = replacement
+		return nil, err
 	}
 
 	_, err = parser.ParseString(cessation)
 
 	if err != nil {
-
-		if !isDeprecatedEDTF(cessation) {
-			return nil, err
-		}
-
-		replacement, err := replaceDeprecatedEDTF(cessation)
-
-		if err != nil {
-			return nil, err
-		}
-
-		cessation = replacement
+		return nil, err
 	}
 
 	path, err := uri.Id2RelPath(id)
