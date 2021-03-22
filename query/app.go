@@ -78,6 +78,20 @@ func (query_app *QueryApplication) RunWithFlagSet(ctx context.Context, fs *flag.
 		return fmt.Errorf("Failed to create new spatial application, %v", err)
 	}
 
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	uris := fs.Args()
+
+	go func() {
+
+		err := spatial_app.Iterator.IterateURIs(ctx, uris...)
+
+		if err != nil {
+			log.Printf("Failed to iterate URIs, %v", err)
+		}
+	}()
+
 	switch mode {
 
 	case "cli":

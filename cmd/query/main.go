@@ -1,6 +1,10 @@
 package main
 
 import (
+	_ "github.com/whosonfirst/go-whosonfirst-spatial-rtree"
+)
+
+import (
 	"context"
 	"github.com/whosonfirst/go-whosonfirst-spatial-pip/query"
 	"log"

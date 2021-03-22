@@ -8,6 +8,7 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-spr-geojson"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"net/http"
+	_ "log"
 )
 
 const GEOJSON string = "application/geo+json"
@@ -24,6 +25,11 @@ func PointInPolygonHandler(app *spatial_app.SpatialApplication, opts *PointInPol
 
 		if req.Method != "POST" {
 			http.Error(rsp, "Unsupported method", http.StatusMethodNotAllowed)
+			return
+		}
+
+		if app.Iterator.IsIndexing() {
+			http.Error(rsp, "Indexing records", http.StatusServiceUnavailable)
 			return
 		}
 
