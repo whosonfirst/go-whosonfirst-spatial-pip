@@ -20,6 +20,7 @@ require (
 	github.com/whosonfirst/go-whosonfirst-placetypes v0.3.0
 	github.com/whosonfirst/go-whosonfirst-reader v0.0.2
 	github.com/whosonfirst/go-whosonfirst-spatial v0.0.45
+	github.com/whosonfirst/go-whosonfirst-spatial-sqlite v0.0.34
 	github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.4
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.0.0
 	github.com/whosonfirst/go-whosonfirst-writer v0.2.1
