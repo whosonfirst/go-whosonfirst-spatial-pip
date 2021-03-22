@@ -16,6 +16,8 @@ github.com/aaronland/go-artisanal-integers-proxy v0.2.0/go.mod h1:7Pkt553bRIgRMz
 github.com/aaronland/go-brooklynintegers-api v1.0.2/go.mod h1:JlR7i6vciy3W0aMnid7cN/Ls9Pz/vaq1lNj9sCENQf0=
 github.com/aaronland/go-brooklynintegers-api v1.1.0 h1:eyoSZjn3Qiy79H+1rG/HtkEShNBZkPUWs4YKpFWkuD8=
 github.com/aaronland/go-brooklynintegers-api v1.1.0/go.mod h1:agceH8JW8PcdHGCyKEDmOntccB3m7xUKrUejHpxAs6U=
+github.com/aaronland/go-http-sanitize v0.0.4 h1:oAYe5DbtbDS6x5Rygv5II6fDHzATGIAyY4/ZDZ63G2w=
+github.com/aaronland/go-http-sanitize v0.0.4/go.mod h1:qUi4rzUPcpMntpUFnHK00yQI5vd/Q7x9MFYwX91/ygI=
 github.com/aaronland/go-http-server v0.0.5 h1:DxQKt2tcoq27gjqMJ9/wKyTu0briY9lPuKwBTXXh90o=
 github.com/aaronland/go-http-server v0.0.5/go.mod h1:6dtsZDrQG0XvUOCL0eaHsUw+7gw3Xa/Nm+XofvkSw2w=
 github.com/aaronland/go-json-query v0.0.2 h1:cKw/DnxtGaPsClb78ONgmXPOJkqHhaBMU2RTBbPoXos=
@@ -289,6 +291,8 @@ github.com/whosonfirst/go-whosonfirst-spatial-sqlite v0.0.34 h1:Js4bNTIeX1TpANAj
 github.com/whosonfirst/go-whosonfirst-spatial-sqlite v0.0.34/go.mod h1:6I+jUpNiiJm+94X7OYTXc9ZXuY+XBXz5PdHtlJfCSnM=
 github.com/whosonfirst/go-whosonfirst-spr v0.1.0 h1:5qE629nCiucF2upy5NjPOEl9cFatsljykYY0l2JKgAk=
 github.com/whosonfirst/go-whosonfirst-spr v0.1.0/go.mod h1:R8GtEVz1GVSnwwOjzcoVUd172ZK26Q7hQSLI6SGG7lM=
+github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.4 h1:o2fOHU6BgEdwur8eMEm9uWkOp3hqa78CL8Tmyi7vtpQ=
+github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.4/go.mod h1:pjFTNfpOjnzuS1+l6c6KlAKrFfYqjXUl+4uCFUxCrgM=
 github.com/whosonfirst/go-whosonfirst-spr/v2 v2.0.0 h1:UQ1n/uODS50mckZpXYe5GKm8XwoUUC1jRcNN8oiW2uc=
 github.com/whosonfirst/go-whosonfirst-spr/v2 v2.0.0/go.mod h1:tveSSFDn8XoiCeAMarSCn769lA6e3Y0/Qi8S19Jz7Gw=
 github.com/whosonfirst/go-whosonfirst-sqlite v0.1.6 h1:XhAlLoPm7y/4565du5H7R5Swjf/pBl+cuXHoAs6evLA=

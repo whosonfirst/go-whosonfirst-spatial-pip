@@ -25,7 +25,7 @@ func NewQueryApplicationFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	fs.String("mode", "cli", "...")
 	fs.String("server-uri", "http://localhost:8080", "...")
 

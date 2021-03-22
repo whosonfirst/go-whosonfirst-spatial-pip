@@ -53,7 +53,7 @@ func (query_app *QueryApplication) RunWithFlagSet(ctx context.Context, fs *flag.
 	if err != nil {
 		return err
 	}
-	
+
 	mode, err := lookup.StringVar(fs, "mode")
 
 	if err != nil {

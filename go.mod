@@ -3,6 +3,7 @@ module github.com/whosonfirst/go-whosonfirst-spatial-pip
 go 1.16
 
 require (
+	github.com/aaronland/go-http-sanitize v0.0.4
 	github.com/aaronland/go-http-server v0.0.5
 	github.com/aws/aws-lambda-go v1.23.0
 	github.com/paulmach/orb v0.2.1
@@ -19,6 +20,7 @@ require (
 	github.com/whosonfirst/go-whosonfirst-placetypes v0.3.0
 	github.com/whosonfirst/go-whosonfirst-reader v0.0.2
 	github.com/whosonfirst/go-whosonfirst-spatial v0.0.45
+	github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.4
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.0.0
 	github.com/whosonfirst/go-whosonfirst-writer v0.2.1
 	github.com/whosonfirst/go-writer v0.4.1
