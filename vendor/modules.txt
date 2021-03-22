@@ -104,7 +104,7 @@ github.com/whosonfirst/go-whosonfirst-spatial/flags
 github.com/whosonfirst/go-whosonfirst-spatial/geo
 github.com/whosonfirst/go-whosonfirst-spatial/properties
 github.com/whosonfirst/go-whosonfirst-spatial/timer
-# github.com/whosonfirst/go-whosonfirst-spatial-rtree v0.0.7
+# github.com/whosonfirst/go-whosonfirst-spatial-rtree v0.0.8
 ## explicit
 github.com/whosonfirst/go-whosonfirst-spatial-rtree
 # github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.6

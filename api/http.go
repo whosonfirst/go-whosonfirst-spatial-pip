@@ -7,8 +7,8 @@ import (
 	spatial_app "github.com/whosonfirst/go-whosonfirst-spatial/app"
 	"github.com/whosonfirst/go-whosonfirst-spr-geojson"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
-	"net/http"
 	_ "log"
+	"net/http"
 )
 
 const GEOJSON string = "application/geo+json"
