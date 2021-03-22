@@ -1,5 +1,7 @@
 # go-whosonfirst-spatial-pip
 
+Opionated point-in-polygon operations for `go-whosonfirst-spatial` packages.
+
 ## IMPORTANT
 
 This is work in progress. Documentation to follow.
