@@ -29,6 +29,6 @@ func NewQueryApplicationFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.String("mode", "cli", "...")
 	fs.String("server-uri", "http://localhost:8080", "...")
 	fs.Bool("enable-geojson", false, "...")
-	
+
 	return fs, nil
 }

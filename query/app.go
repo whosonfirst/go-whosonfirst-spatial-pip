@@ -67,11 +67,11 @@ func (query_app *QueryApplication) RunWithFlagSet(ctx context.Context, fs *flag.
 	}
 
 	enable_geojson, err := lookup.BoolVar(fs, "enable-geojson")
-	
+
 	if err != nil {
 		return err
 	}
-	
+
 	spatial_app, err := app.NewSpatialApplicationWithFlagSet(ctx, fs)
 
 	if err != nil {
@@ -115,7 +115,7 @@ func (query_app *QueryApplication) RunWithFlagSet(ctx context.Context, fs *flag.
 		pip_opts := &api.PointInPolygonHandlerOptions{
 			EnableGeoJSON: enable_geojson,
 		}
-		
+
 		pip_handler, err := api.PointInPolygonHandler(spatial_app, pip_opts)
 
 		if err != nil {

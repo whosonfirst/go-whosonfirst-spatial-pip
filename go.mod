@@ -3,7 +3,7 @@ module github.com/whosonfirst/go-whosonfirst-spatial-pip
 go 1.16
 
 require (
-	github.com/aaronland/go-http-sanitize v0.0.4
+	github.com/aaronland/go-http-sanitize v0.0.5
 	github.com/aaronland/go-http-server v0.0.5
 	github.com/aws/aws-lambda-go v1.23.0
 	github.com/paulmach/orb v0.2.1

@@ -2,13 +2,15 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/aaronland/go-http-sanitize"
 	"github.com/whosonfirst/go-whosonfirst-spatial-pip"
 	spatial_app "github.com/whosonfirst/go-whosonfirst-spatial/app"
 	"github.com/whosonfirst/go-whosonfirst-spr-geojson"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"net/http"
-	"github.com/aaronland/go-http-sanitize"
 )
+
+const GEOJSON string = "application/geo+json"
 
 type PointInPolygonHandlerOptions struct {
 	EnableGeoJSON bool
@@ -20,13 +22,25 @@ func PointInPolygonHandler(app *spatial_app.SpatialApplication, opts *PointInPol
 
 		ctx := req.Context()
 
+		if req.Method != "POST" {
+			http.Error(rsp, "Unsupported method", http.StatusMethodNotAllowed)
+			return
+		}
+
 		var pip_req *pip.PointInPolygonRequest
 
 		dec := json.NewDecoder(req.Body)
 		err := dec.Decode(&pip_req)
 
 		if err != nil {
-			http.Error(rsp, err.Error(), http.StatusInternalServerError)
+			http.Error(rsp, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		accept, err := sanitize.HeaderString(req, "Accept")
+
+		if err != nil {
+			http.Error(rsp, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -37,14 +51,7 @@ func PointInPolygonHandler(app *spatial_app.SpatialApplication, opts *PointInPol
 			return
 		}
 
-		format, err := sanitize.GetString(req, "format")
-
-		if err != nil {
-			http.Error(rsp, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if opts.EnableGeoJSON && format == "geojson" {
+		if opts.EnableGeoJSON && accept == GEOJSON {
 
 			opts := &geojson.AsFeatureCollectionOptions{
 				Reader: app.SpatialDatabase,
@@ -60,8 +67,6 @@ func PointInPolygonHandler(app *spatial_app.SpatialApplication, opts *PointInPol
 
 			return
 		}
-
-		// geojson here?
 
 		enc := json.NewEncoder(rsp)
 		err = enc.Encode(pip_rsp)
