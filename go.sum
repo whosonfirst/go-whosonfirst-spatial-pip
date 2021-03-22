@@ -117,6 +117,8 @@ github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQD
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
 github.com/sfomuseum/go-edtf v0.2.2 h1:8n1UekTCU6fkgAf3bWqG5RyQxOd9hRhy4lg91aQ3kMk=
 github.com/sfomuseum/go-edtf v0.2.2/go.mod h1:1rP0EJZ/84j3HO80vGcnG2T9MFBDAFyTNtjrr8cv3T4=
+github.com/sfomuseum/go-edtf v0.2.3 h1:wpcpwl1RD9W/sXFDi4zpoIpQcIwIk8em9CGwa7YWv4g=
+github.com/sfomuseum/go-edtf v0.2.3/go.mod h1:1rP0EJZ/84j3HO80vGcnG2T9MFBDAFyTNtjrr8cv3T4=
 github.com/sfomuseum/go-flags v0.5.0/go.mod h1:ML3DTNbF9xnjExSdS/9FtVLjIUhRU5gm/ehzISv+t2w=
 github.com/sfomuseum/go-flags v0.6.0/go.mod h1:ML3DTNbF9xnjExSdS/9FtVLjIUhRU5gm/ehzISv+t2w=
 github.com/sfomuseum/go-flags v0.7.0 h1:tj0BhAEhc7enIA0kuLjVNrVkqiUelX5jQkyL/A0cNAo=
@@ -209,6 +211,8 @@ github.com/whosonfirst/go-whosonfirst-geojson-v2 v0.15.1 h1:Kxsd+B6U97YRbIlpBxrZ
 github.com/whosonfirst/go-whosonfirst-geojson-v2 v0.15.1/go.mod h1:zAXmgT1EjBAt5HawVNyr3/N53j5iVqxFVha8VBhkra0=
 github.com/whosonfirst/go-whosonfirst-geojson-v2 v0.16.0 h1:o+Q4noTqXYKeDD+dMrf4lb1yFvly5PDAcF4ASKwHwpc=
 github.com/whosonfirst/go-whosonfirst-geojson-v2 v0.16.0/go.mod h1:cWVV68R2xgKtmOcAsQmWYsdv8QhIhT4k9DmqRbqrt/4=
+github.com/whosonfirst/go-whosonfirst-geojson-v2 v0.16.1 h1:zUJoEVZzmstNybujlUkLXMbJ4ucKIfLS9IgIX0XE/Sk=
+github.com/whosonfirst/go-whosonfirst-geojson-v2 v0.16.1/go.mod h1:R3GximAGJWLCITU2eh3I5Vtyze/usjOl5LTGQCDI89Y=
 github.com/whosonfirst/go-whosonfirst-hash v0.1.0 h1:FpnclPIb+8M1uhSXfl3z8nYcG/3O59vgfkdV+m0hQpA=
 github.com/whosonfirst/go-whosonfirst-hash v0.1.0/go.mod h1:1ZdCFZTnQt5bwnsj2daB9yHilKOKToVh+Tyj/Z8TbUk=
 github.com/whosonfirst/go-whosonfirst-id v0.0.2 h1:MYtBPYtOND/KSLYeaoURWyh2OkyVqwpOXSuNj9vNf9Q=
@@ -261,6 +265,8 @@ github.com/whosonfirst/go-whosonfirst-spatial v0.0.38 h1:Ty/JQuA7JrkBUalWw9WcZ8r
 github.com/whosonfirst/go-whosonfirst-spatial v0.0.38/go.mod h1:SjDK+8GRySI5W0XBfWNyoFGo6M1yErGIPjPJLIHK7M4=
 github.com/whosonfirst/go-whosonfirst-spatial v0.0.44 h1:UeAdtnQ1DIn7jzKeLvKa1lV42QmuQlvuWFZrxyHnxzI=
 github.com/whosonfirst/go-whosonfirst-spatial v0.0.44/go.mod h1:9NCCg5+gl3rOiCDc1uU6ekQQr2nHG3s7lrb22EHwfvg=
+github.com/whosonfirst/go-whosonfirst-spatial v0.0.45 h1:jyVyjV2t3Xn505EEOMbSlrkPFrsSOvOC37vQJHjxA84=
+github.com/whosonfirst/go-whosonfirst-spatial v0.0.45/go.mod h1:9NCCg5+gl3rOiCDc1uU6ekQQr2nHG3s7lrb22EHwfvg=
 github.com/whosonfirst/go-whosonfirst-spatial-sqlite v0.0.22 h1:cHMkGmYtkqvkS2RK1q3JpzpRvL58w/UpOkv4NcFTrE4=
 github.com/whosonfirst/go-whosonfirst-spatial-sqlite v0.0.22/go.mod h1:hVrW4B2viNPFe5jmo8sk2mRlsTEmnS0woVxJZKf7HNM=
 github.com/whosonfirst/go-whosonfirst-spatial-sqlite v0.0.24 h1:IzOEUnFsSnnvspS5/lV72pHT/7+AnsOPPiygttYwfjI=
@@ -279,6 +285,8 @@ github.com/whosonfirst/go-whosonfirst-spatial-sqlite v0.0.31 h1:8F1m44iKw4Bb2nF6
 github.com/whosonfirst/go-whosonfirst-spatial-sqlite v0.0.31/go.mod h1:PvLa1rDolqJUM8D9cgJu1ok0V1HP5xB+JkLz2PmyjxM=
 github.com/whosonfirst/go-whosonfirst-spatial-sqlite v0.0.32 h1:dpGgsp9876SzhpMSTdYF2iu1HRoHUIciNWvT/gotBjM=
 github.com/whosonfirst/go-whosonfirst-spatial-sqlite v0.0.32/go.mod h1:bgQv3eCaayUZ9Eil0Exq54QwKllIIJ4zFVsXo4kBaIc=
+github.com/whosonfirst/go-whosonfirst-spatial-sqlite v0.0.34 h1:Js4bNTIeX1TpANAj8YbbQGTFGzVkjaAbtd+7uvzjO6M=
+github.com/whosonfirst/go-whosonfirst-spatial-sqlite v0.0.34/go.mod h1:6I+jUpNiiJm+94X7OYTXc9ZXuY+XBXz5PdHtlJfCSnM=
 github.com/whosonfirst/go-whosonfirst-spr v0.1.0 h1:5qE629nCiucF2upy5NjPOEl9cFatsljykYY0l2JKgAk=
 github.com/whosonfirst/go-whosonfirst-spr v0.1.0/go.mod h1:R8GtEVz1GVSnwwOjzcoVUd172ZK26Q7hQSLI6SGG7lM=
 github.com/whosonfirst/go-whosonfirst-spr/v2 v2.0.0 h1:UQ1n/uODS50mckZpXYe5GKm8XwoUUC1jRcNN8oiW2uc=
@@ -289,6 +297,10 @@ github.com/whosonfirst/go-whosonfirst-sqlite v0.1.7 h1:WZOGRgD2UmQWYOITWNpTWcccd
 github.com/whosonfirst/go-whosonfirst-sqlite v0.1.7/go.mod h1:Vz7VscOjc7oS99GFGLJMyQj++nWuAQ/F/dCFzEzyYg0=
 github.com/whosonfirst/go-whosonfirst-sqlite-features v0.6.6 h1:RSvACOQLGRe5qzUl2mZ1imR4unPRwfxtdsnX5NAG3zY=
 github.com/whosonfirst/go-whosonfirst-sqlite-features v0.6.6/go.mod h1:jZXXBBarIOYmkFl/LiKPjE4dQEunUZjV4fGqQImnXYQ=
+github.com/whosonfirst/go-whosonfirst-sqlite-features v0.7.0 h1:tPNRXNBKQTs4/D2xcVpSbE+eTfNybM2kYlnj7Y8yMIo=
+github.com/whosonfirst/go-whosonfirst-sqlite-features v0.7.0/go.mod h1:8/vuryTxsLsPEpVgpy0n+phpIMLXFd1PiFOm395/BXg=
+github.com/whosonfirst/go-whosonfirst-sqlite-spr v0.0.3 h1:YZhoJM5fvGtmKDbDDphUooMjxRqR8jGudu7laXU4hJE=
+github.com/whosonfirst/go-whosonfirst-sqlite-spr v0.0.3/go.mod h1:iBbWuL/QsdX5xnfaL3HDEOJNC6gbGUgKSaQvFrWdPVE=
 github.com/whosonfirst/go-whosonfirst-uri v0.1.0/go.mod h1:8eaDVcc4v+HHHEDaRbApdmhPwM4/JQllw2PktvZcPVs=
 github.com/whosonfirst/go-whosonfirst-uri v0.2.0 h1:iODHdyvW+8IXqHZTixZ/9GEZy1dVKGj6dMRg7fn0d2M=
 github.com/whosonfirst/go-whosonfirst-uri v0.2.0/go.mod h1:8eaDVcc4v+HHHEDaRbApdmhPwM4/JQllw2PktvZcPVs=

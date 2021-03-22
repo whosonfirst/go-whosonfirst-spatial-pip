@@ -11,12 +11,8 @@ import (
 	"github.com/sfomuseum/go-flags/lookup"
 	"github.com/whosonfirst/go-whosonfirst-spatial-pip"
 	"github.com/whosonfirst/go-whosonfirst-spatial-pip/api"
-	// "github.com/whosonfirst/go-whosonfirst-spatial/api"
 	"github.com/whosonfirst/go-whosonfirst-spatial/app"
-	// "github.com/whosonfirst/go-whosonfirst-spatial/database"
 	"github.com/whosonfirst/go-whosonfirst-spatial/flags"
-
-	// "github.com/whosonfirst/go-whosonfirst-spatial/properties"
 	"log"
 	gohttp "net/http"
 )
@@ -52,6 +48,12 @@ func (query_app *QueryApplication) RunWithFlagSet(ctx context.Context, fs *flag.
 		return err
 	}
 
+	err = flags.ValidateIndexingFlags(fs)
+
+	if err != nil {
+		return err
+	}
+	
 	mode, err := lookup.StringVar(fs, "mode")
 
 	if err != nil {

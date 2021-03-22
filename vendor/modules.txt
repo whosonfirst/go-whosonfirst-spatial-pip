@@ -42,7 +42,7 @@ github.com/paulmach/orb
 github.com/paulmach/orb/geojson
 github.com/paulmach/orb/internal/length
 github.com/paulmach/orb/planar
-# github.com/sfomuseum/go-edtf v0.2.2
+# github.com/sfomuseum/go-edtf v0.2.3
 ## explicit
 github.com/sfomuseum/go-edtf
 github.com/sfomuseum/go-edtf/calendar
@@ -97,7 +97,7 @@ github.com/whosonfirst/go-whosonfirst-flags/geometry
 github.com/whosonfirst/go-whosonfirst-flags/placetypes
 # github.com/whosonfirst/go-whosonfirst-format v0.3.0
 github.com/whosonfirst/go-whosonfirst-format
-# github.com/whosonfirst/go-whosonfirst-geojson-v2 v0.16.0
+# github.com/whosonfirst/go-whosonfirst-geojson-v2 v0.16.1
 ## explicit
 github.com/whosonfirst/go-whosonfirst-geojson-v2
 github.com/whosonfirst/go-whosonfirst-geojson-v2/feature
@@ -126,10 +126,9 @@ github.com/whosonfirst/go-whosonfirst-reader
 # github.com/whosonfirst/go-whosonfirst-sources v0.1.0
 github.com/whosonfirst/go-whosonfirst-sources
 github.com/whosonfirst/go-whosonfirst-sources/sources
-# github.com/whosonfirst/go-whosonfirst-spatial v0.0.44
+# github.com/whosonfirst/go-whosonfirst-spatial v0.0.45
 ## explicit
 github.com/whosonfirst/go-whosonfirst-spatial
-github.com/whosonfirst/go-whosonfirst-spatial/api
 github.com/whosonfirst/go-whosonfirst-spatial/app
 github.com/whosonfirst/go-whosonfirst-spatial/database
 github.com/whosonfirst/go-whosonfirst-spatial/filter
