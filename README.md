@@ -6,6 +6,8 @@ Opionated point-in-polygon operations for `go-whosonfirst-spatial` packages.
 
 This is work in progress. Documentation to follow.
 
+_If you're reading this it means the documentation below is out of date._
+
 ## Background
 
 This package exports point-in-polygon (PIP) applications using the `whosonfirst/go-whosonfirst-spatial` interfaces.
@@ -332,6 +334,7 @@ Finally we pipe the results (a GeoJSON `FeatureCollection` string output to STDO
 ## See also
 
 * https://github.com/whosonfirst/go-whosonfirst-spatial
+* https://github.com/whosonfirst/go-whosonfirst-spatial-rtree
 * https://github.com/whosonfirst/go-whosonfirst-iterate
 * https://github.com/whosonfirst/go-whosonfirst-exporter
 * https://github.com/whosonfirst/go-whosonfirst-spr

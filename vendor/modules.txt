@@ -107,7 +107,7 @@ github.com/whosonfirst/go-whosonfirst-spatial/timer
 # github.com/whosonfirst/go-whosonfirst-spatial-rtree v0.0.7
 ## explicit
 github.com/whosonfirst/go-whosonfirst-spatial-rtree
-# github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.5
+# github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.6
 ## explicit
 github.com/whosonfirst/go-whosonfirst-spr-geojson
 # github.com/whosonfirst/go-whosonfirst-spr/v2 v2.0.0

@@ -1,6 +1,10 @@
 package geojson
 
 import (
+	_ "github.com/whosonfirst/go-writer-featurecollection"
+)
+
+import (
 	"bufio"
 	"bytes"
 	"context"
@@ -10,7 +14,6 @@ import (
 	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"github.com/whosonfirst/go-writer"
-	_ "github.com/whosonfirst/go-writer-featurecollection"
 	"io"
 	_ "log"
 )
@@ -81,13 +84,13 @@ func AsFeatureCollection(ctx context.Context, rsp spr.StandardPlacesResults, opt
 	ctx, err := writer.SetIOWriterWithContext(ctx, opts.Writer)
 
 	if err != nil {
-		return nil
+		return err
 	}
 
-	wr, err := writer.NewWriter(ctx, "featurecollection://?writer=io")
+	wr, err := writer.NewWriter(ctx, "featurecollection://?writer=io://")
 
 	if err != nil {
-		return nil
+		return err
 	}
 
 	defer wr.Close(ctx)

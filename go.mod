@@ -9,6 +9,6 @@ require (
 	github.com/sfomuseum/go-flags v0.8.1
 	github.com/whosonfirst/go-whosonfirst-spatial v0.0.45
 	github.com/whosonfirst/go-whosonfirst-spatial-rtree v0.0.7
-	github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.5
+	github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.6
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.0.0
 )
