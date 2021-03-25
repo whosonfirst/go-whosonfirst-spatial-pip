@@ -3,18 +3,20 @@ package api
 import (
 	"encoding/json"
 	"github.com/aaronland/go-http-sanitize"
+	"github.com/whosonfirst/go-whosonfirst-spatial"	
 	"github.com/whosonfirst/go-whosonfirst-spatial-pip"
 	spatial_app "github.com/whosonfirst/go-whosonfirst-spatial/app"
 	"github.com/whosonfirst/go-whosonfirst-spr-geojson"
-	"github.com/whosonfirst/go-whosonfirst-spr/v2"
 	_ "log"
 	"net/http"
+	"strings"
 )
 
 const GEOJSON string = "application/geo+json"
 
 type PointInPolygonHandlerOptions struct {
 	EnableGeoJSON bool
+	EnableProperties bool
 }
 
 func PointInPolygonHandler(app *spatial_app.SpatialApplication, opts *PointInPolygonHandlerOptions) (http.Handler, error) {
@@ -50,6 +52,25 @@ func PointInPolygonHandler(app *spatial_app.SpatialApplication, opts *PointInPol
 			return
 		}
 
+		if accept == GEOJSON && !opts.EnableGeoJSON {
+			http.Error(rsp, "GeoJSON output is not supported", http.StatusBadRequest)
+			return
+		}
+		
+		str_props, err := sanitize.HeaderString(req, "X-Properties")
+
+		if err != nil {
+			http.Error(rsp, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		props := strings.Split(",", str_props)
+		
+		if len(props) > 0 && !opts.EnableProperties {
+			http.Error(rsp, "Properties output is not supported", http.StatusBadRequest)
+			return			
+		}
+		
 		pip_rsp, err := pip.QueryPointInPolygon(ctx, app, pip_req)
 
 		if err != nil {
@@ -64,19 +85,42 @@ func PointInPolygonHandler(app *spatial_app.SpatialApplication, opts *PointInPol
 				Writer: rsp,
 			}
 
-			err := geojson.AsFeatureCollection(ctx, pip_rsp.(spr.StandardPlacesResults), opts)
+			err := geojson.AsFeatureCollection(ctx, pip_rsp, opts)
 
 			if err != nil {
 				http.Error(rsp, err.Error(), http.StatusInternalServerError)
 				return
-			}
+			}			
+		}
+		
+		if len(props) > 0 {
 
+			props_opts := &spatial.AppendPropertiesOptions{
+				Reader: app.SpatialDatabase,
+				Keys: props,
+			}
+			
+			props_rsp, err := spatial.PropertiesResponseResultsWithStandardPlacesResults(ctx, props_opts, pip_rsp)
+			
+			if err != nil {
+				http.Error(rsp, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			
+			enc := json.NewEncoder(rsp)
+			err = enc.Encode(props_rsp)
+			
+			if err != nil {
+				http.Error(rsp, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			
 			return
 		}
-
+		
 		enc := json.NewEncoder(rsp)
 		err = enc.Encode(pip_rsp)
-
+		
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
 			return
