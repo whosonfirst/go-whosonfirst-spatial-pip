@@ -6,6 +6,10 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-spatial/flags"
 )
 
+const ENABLE_GEOJSON string = "enable-geojson"
+const SERVER_URI string = "server-uri"
+const MODE string = "mode"
+
 func NewQueryApplicationFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs, err := flags.CommonFlags()
@@ -26,9 +30,9 @@ func NewQueryApplicationFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 		return nil, err
 	}
 
-	fs.String("mode", "cli", "...")
-	fs.String("server-uri", "http://localhost:8080", "...")
-	fs.Bool("enable-geojson", false, "...")
+	fs.String(MODE, "cli", "...")
+	fs.String(SERVER_URI, "http://localhost:8080", "...")
+	fs.Bool(ENABLE_GEOJSON, false, "...")
 
 	return fs, nil
 }
