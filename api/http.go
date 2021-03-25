@@ -89,9 +89,10 @@ func PointInPolygonHandler(app *spatial_app.SpatialApplication, opts *PointInPol
 
 		if len(props) > 0 {
 
-			props_opts := &spatial.AppendPropertiesOptions{
-				Reader: app.SpatialDatabase,
-				Keys:   props,
+			props_opts := &spatial.PropertiesResponseOptions{
+				Reader:       app.SpatialDatabase,
+				Keys:         props,
+				SourcePrefix: "properties",
 			}
 
 			props_rsp, err := spatial.PropertiesResponseResultsWithStandardPlacesResults(ctx, props_opts, pip_rsp)

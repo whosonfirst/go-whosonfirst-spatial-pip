@@ -138,9 +138,10 @@ func (query_app *QueryApplication) RunWithFlagSet(ctx context.Context, fs *flag.
 
 		if len(props) > 0 {
 
-			props_opts := &spatial.AppendPropertiesOptions{
-				Reader: spatial_app.PropertiesReader,
-				Keys:   props,
+			props_opts := &spatial.PropertiesResponseOptions{
+				Reader:       spatial_app.PropertiesReader,
+				Keys:         props,
+				SourcePrefix: "properties",
 			}
 
 			props_rsp, err := spatial.PropertiesResponseResultsWithStandardPlacesResults(ctx, props_opts, pip_rsp)
