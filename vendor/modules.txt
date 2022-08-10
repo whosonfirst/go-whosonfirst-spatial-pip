@@ -100,7 +100,7 @@ github.com/whosonfirst/go-whosonfirst-placetypes/placetypes
 # github.com/whosonfirst/go-whosonfirst-sources v0.1.0
 github.com/whosonfirst/go-whosonfirst-sources
 github.com/whosonfirst/go-whosonfirst-sources/sources
-# github.com/whosonfirst/go-whosonfirst-spatial v0.3.5
+# github.com/whosonfirst/go-whosonfirst-spatial v0.3.6
 ## explicit
 github.com/whosonfirst/go-whosonfirst-spatial
 github.com/whosonfirst/go-whosonfirst-spatial/app
@@ -109,10 +109,10 @@ github.com/whosonfirst/go-whosonfirst-spatial/filter
 github.com/whosonfirst/go-whosonfirst-spatial/flags
 github.com/whosonfirst/go-whosonfirst-spatial/geo
 github.com/whosonfirst/go-whosonfirst-spatial/timer
-# github.com/whosonfirst/go-whosonfirst-spatial-rtree v0.2.1
+# github.com/whosonfirst/go-whosonfirst-spatial-rtree v0.2.2
 ## explicit
 github.com/whosonfirst/go-whosonfirst-spatial-rtree
-# github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.6
+# github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.7
 ## explicit
 github.com/whosonfirst/go-whosonfirst-spr-geojson
 # github.com/whosonfirst/go-whosonfirst-spr/v2 v2.2.1
@@ -120,10 +120,10 @@ github.com/whosonfirst/go-whosonfirst-spr-geojson
 github.com/whosonfirst/go-whosonfirst-spr/v2
 # github.com/whosonfirst/go-whosonfirst-uri v1.2.0
 github.com/whosonfirst/go-whosonfirst-uri
-# github.com/whosonfirst/go-writer v1.0.1
-github.com/whosonfirst/go-writer
-# github.com/whosonfirst/go-writer-featurecollection v0.0.2
-github.com/whosonfirst/go-writer-featurecollection
+# github.com/whosonfirst/go-writer-featurecollection/v2 v2.0.0
+github.com/whosonfirst/go-writer-featurecollection/v2
+# github.com/whosonfirst/go-writer/v2 v2.0.0
+github.com/whosonfirst/go-writer/v2
 # github.com/whosonfirst/walk v0.0.1
 github.com/whosonfirst/walk
 # github.com/whosonfirst/warning v0.1.1
