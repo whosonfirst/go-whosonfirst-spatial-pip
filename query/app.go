@@ -11,7 +11,7 @@ import (
 	"github.com/sfomuseum/go-flags/lookup"
 	"github.com/whosonfirst/go-whosonfirst-spatial"
 	"github.com/whosonfirst/go-whosonfirst-spatial-pip"
-	"github.com/whosonfirst/go-whosonfirst-spatial-pip/api"
+	"github.com/whosonfirst/go-whosonfirst-spatial-pip/http/api"
 	"github.com/whosonfirst/go-whosonfirst-spatial/app"
 	spatial_flags "github.com/whosonfirst/go-whosonfirst-spatial/flags"
 	"log"
