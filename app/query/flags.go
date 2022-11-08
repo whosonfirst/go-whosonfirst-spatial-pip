@@ -10,7 +10,11 @@ const ENABLE_GEOJSON string = "enable-geojson"
 const SERVER_URI string = "server-uri"
 const MODE string = "mode"
 
-func NewQueryApplicationFlagSet(ctx context.Context) (*flag.FlagSet, error) {
+var mode string
+var server_uri string
+var enable_geojson bool
+
+func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs, err := flags.CommonFlags()
 
@@ -30,9 +34,9 @@ func NewQueryApplicationFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 		return nil, err
 	}
 
-	fs.String(MODE, "cli", "...")
-	fs.String(SERVER_URI, "http://localhost:8080", "...")
-	fs.Bool(ENABLE_GEOJSON, false, "...")
+	fs.StringVar(&mode, "mode", "cli", "...")
+	fs.StringVar(&server_uri, "server-uri", "http://localhost:8080", "...")
+	fs.BoolVar(&enable_geojson, "enable-geojson", false, "...")
 
 	return fs, nil
 }

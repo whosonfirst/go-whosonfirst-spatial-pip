@@ -6,7 +6,7 @@ import (
 
 import (
 	"context"
-	"github.com/whosonfirst/go-whosonfirst-spatial-pip/query"
+	"github.com/whosonfirst/go-whosonfirst-spatial-pip/app/query"
 	"log"
 )
 
@@ -14,16 +14,12 @@ func main() {
 
 	ctx := context.Background()
 
-	app, err := query.NewQueryApplication(ctx)
+	logger := log.Default()
+
+	err := query.Run(ctx, logger)
 
 	if err != nil {
-		log.Fatalf("Failed to create new PIP application, %v", err)
-	}
-
-	err = app.Run(ctx)
-
-	if err != nil {
-		log.Fatalf("Failed to run PIP application, %v", err)
+		logger.Fatalf("Failed to run PIP application, %v", err)
 	}
 
 }
