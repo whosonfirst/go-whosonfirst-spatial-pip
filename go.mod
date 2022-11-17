@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/aaronland/go-http-sanitize v0.0.6
 	github.com/aaronland/go-http-server v1.0.0
+	github.com/aaronland/go-roster v1.0.0
 	github.com/aws/aws-lambda-go v1.34.1
 	github.com/sfomuseum/go-flags v0.10.0
 	github.com/whosonfirst/go-whosonfirst-placetypes v0.4.0
@@ -16,7 +17,6 @@ require (
 
 require (
 	github.com/aaronland/go-json-query v0.1.2 // indirect
-	github.com/aaronland/go-roster v1.0.0 // indirect
 	github.com/akrylysov/algnhsa v0.12.1 // indirect
 	github.com/dhconnelly/rtreego v1.1.0 // indirect
 	github.com/g8rswimmer/error-chain v1.0.0 // indirect
