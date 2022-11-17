@@ -3,6 +3,7 @@ package query
 import (
 	"context"
 	"flag"
+	"github.com/sfomuseum/go-flags/multi"
 	"github.com/whosonfirst/go-whosonfirst-spatial/flags"
 )
 
@@ -13,6 +14,8 @@ const MODE string = "mode"
 var mode string
 var server_uri string
 var enable_geojson bool
+
+var sort_uris multi.MultiString
 
 func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
@@ -38,5 +41,6 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.StringVar(&server_uri, "server-uri", "http://localhost:8080", "...")
 	fs.BoolVar(&enable_geojson, "enable-geojson", false, "...")
 
+	fs.Var(&sort_uris, "sort-uri", "Zero or more whosonfirst/go-whosonfirst-spr/v2/sort URIs.")
 	return fs, nil
 }

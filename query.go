@@ -6,7 +6,7 @@ import (
 	spatial_app "github.com/whosonfirst/go-whosonfirst-spatial/app"
 	"github.com/whosonfirst/go-whosonfirst-spatial/geo"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
-	"github.com/whosonfirst/go-whosonfirst-spr/v2/sort"	
+	"github.com/whosonfirst/go-whosonfirst-spr/v2/sort"
 )
 
 func QueryPointInPolygon(ctx context.Context, app *spatial_app.SpatialApplication, req *PointInPolygonRequest) (spr.StandardPlacesResults, error) {
@@ -27,9 +27,9 @@ func QueryPointInPolygon(ctx context.Context, app *spatial_app.SpatialApplicatio
 	var follow_on_sorters []sort.Sorter
 
 	for idx, uri := range req.Sort {
-		
+
 		s, err := sort.NewSorter(ctx, uri)
-		
+
 		if err != nil {
 			return nil, fmt.Errorf("Failed to create sorter for '%s', %w", uri, err)
 		}
@@ -40,7 +40,7 @@ func QueryPointInPolygon(ctx context.Context, app *spatial_app.SpatialApplicatio
 			follow_on_sorters = append(follow_on_sorters, s)
 		}
 	}
-	
+
 	db := app.SpatialDatabase
 	rsp, err := db.PointInPolygon(ctx, c, f)
 

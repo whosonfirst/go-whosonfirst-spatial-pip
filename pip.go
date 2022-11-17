@@ -126,6 +126,14 @@ func NewPointInPolygonRequestFromFlagSet(fs *flag.FlagSet) (*PointInPolygonReque
 
 	req.IsSuperseding = is_superseding
 
+	sort_uris, err := lookup.MultiStringVar(fs, "sort-uri")
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Sort = sort_uris
+
 	return req, nil
 }
 
