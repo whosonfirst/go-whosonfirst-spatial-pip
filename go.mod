@@ -7,6 +7,7 @@ require (
 	github.com/aaronland/go-http-server v1.0.0
 	github.com/aws/aws-lambda-go v1.34.1
 	github.com/sfomuseum/go-flags v0.10.0
+	github.com/whosonfirst/go-whosonfirst-placetypes v0.4.0
 	github.com/whosonfirst/go-whosonfirst-spatial v0.4.0
 	github.com/whosonfirst/go-whosonfirst-spatial-rtree v0.2.3
 	github.com/whosonfirst/go-whosonfirst-spr-geojson v0.0.8
@@ -37,7 +38,6 @@ require (
 	github.com/whosonfirst/go-whosonfirst-feature v0.0.24 // indirect
 	github.com/whosonfirst/go-whosonfirst-flags v0.4.4 // indirect
 	github.com/whosonfirst/go-whosonfirst-iterate/v2 v2.3.0 // indirect
-	github.com/whosonfirst/go-whosonfirst-placetypes v0.3.0 // indirect
 	github.com/whosonfirst/go-whosonfirst-sources v0.1.0 // indirect
 	github.com/whosonfirst/go-whosonfirst-uri v1.2.0 // indirect
 	github.com/whosonfirst/go-writer-featurecollection/v3 v3.0.0-20220916180959-42588e308a3e // indirect

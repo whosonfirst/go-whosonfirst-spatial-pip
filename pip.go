@@ -24,6 +24,7 @@ type PointInPolygonRequest struct {
 	InceptionDate       string   `json:"inception_date,omitempty"`
 	CessationDate       string   `json:"cessation_date,omitempty"`
 	Properties          []string `json:"properties,omitempty"`
+	Sort                []string `json:"sort,omitempty"`
 }
 
 func NewPointInPolygonRequestFromFlagSet(fs *flag.FlagSet) (*PointInPolygonRequest, error) {

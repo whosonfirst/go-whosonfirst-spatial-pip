@@ -104,10 +104,9 @@ github.com/whosonfirst/go-whosonfirst-flags/placetypes
 github.com/whosonfirst/go-whosonfirst-iterate/v2/emitter
 github.com/whosonfirst/go-whosonfirst-iterate/v2/filters
 github.com/whosonfirst/go-whosonfirst-iterate/v2/iterator
-# github.com/whosonfirst/go-whosonfirst-placetypes v0.3.0
-## explicit; go 1.12
+# github.com/whosonfirst/go-whosonfirst-placetypes v0.4.0
+## explicit; go 1.18
 github.com/whosonfirst/go-whosonfirst-placetypes
-github.com/whosonfirst/go-whosonfirst-placetypes/placetypes
 # github.com/whosonfirst/go-whosonfirst-sources v0.1.0
 ## explicit; go 1.12
 github.com/whosonfirst/go-whosonfirst-sources
