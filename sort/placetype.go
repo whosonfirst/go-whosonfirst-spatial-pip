@@ -2,7 +2,6 @@ package sort
 
 import (
 	"context"
-	_ "fmt"
 	"github.com/whosonfirst/go-whosonfirst-placetypes"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"sort"
@@ -20,13 +19,13 @@ func (s byPlacetype) Swap(i, j int) {
 
 func (s byPlacetype) Less(i, j int) bool {
 
-	i_pt, err := placetypes.GetPlacetypeByName(s[i].Name())
+	i_pt, err := placetypes.GetPlacetypeByName(s[i].Placetype())
 
 	if err != nil {
 		return false
 	}
 
-	j_pt, err := placetypes.GetPlacetypeByName(s[j].Name())
+	j_pt, err := placetypes.GetPlacetypeByName(s[j].Placetype())
 
 	if err != nil {
 		return false
