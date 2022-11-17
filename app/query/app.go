@@ -18,37 +18,46 @@ import (
 	gohttp "net/http"
 )
 
-type QueryApplication struct {
+type RunOptions struct {
+	Logger  *log.Logger
+	FlagSet *flag.FlagSet
 }
 
-func NewQueryApplication(ctx context.Context) (*QueryApplication, error) {
+func Run(ctx context.Context, logger *log.Logger) error {
 
-	query_app := &QueryApplication{}
-	return query_app, nil
-}
-
-func (query_app *QueryApplication) Run(ctx context.Context) error {
-
-	fs, err := NewQueryApplicationFlagSet(ctx)
+	fs, err := DefaultFlagSet(ctx)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create application flag set, %v", err)
 	}
 
+	return RunWithFlagSet(ctx, fs, logger)
+}
+
+func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) error {
+
+	opts := &RunOptions{
+		Logger:  logger,
+		FlagSet: fs,
+	}
+
+	return RunWithOptions(ctx, opts)
+}
+
+func RunWithOptions(ctx context.Context, opts *RunOptions) error {
+
+	fs := opts.FlagSet
+	logger := opts.Logger
+
 	flagset.Parse(fs)
 
-	err = flagset.SetFlagsFromEnvVars(fs, "WHOSONFIRST")
+	err := flagset.SetFlagsFromEnvVars(fs, "WHOSONFIRST")
 
 	if err != nil {
 		return err
 	}
 
-	return query_app.RunWithFlagSet(ctx, fs)
-}
-
-func (query_app *QueryApplication) RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
-
-	err := spatial_flags.ValidateCommonFlags(fs)
+	err = spatial_flags.ValidateCommonFlags(fs)
 
 	if err != nil {
 		return err
@@ -61,24 +70,6 @@ func (query_app *QueryApplication) RunWithFlagSet(ctx context.Context, fs *flag.
 	}
 
 	err = spatial_flags.ValidateIndexingFlags(fs)
-
-	if err != nil {
-		return err
-	}
-
-	mode, err := lookup.StringVar(fs, MODE)
-
-	if err != nil {
-		return err
-	}
-
-	server_uri, err := lookup.StringVar(fs, SERVER_URI)
-
-	if err != nil {
-		return err
-	}
-
-	enable_geojson, err := lookup.BoolVar(fs, ENABLE_GEOJSON)
 
 	if err != nil {
 		return err
@@ -102,7 +93,7 @@ func (query_app *QueryApplication) RunWithFlagSet(ctx context.Context, fs *flag.
 		err := spatial_app.Iterator.IterateURIs(ctx, uris...)
 
 		if err != nil {
-			log.Printf("Failed to iterate URIs, %v", err)
+			logger.Printf("Failed to iterate URIs, %v", err)
 		}
 
 		done_ch <- true
