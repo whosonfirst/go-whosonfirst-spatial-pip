@@ -21,6 +21,14 @@ func (s byInception) Less(i, j int) bool {
 	i_inception := s[i].Inception()
 	j_inception := s[j].Inception()
 
+	if i_inception.String() == "" {
+		return false
+	}
+
+	if j_inception.String() == "" {
+		return true
+	}
+
 	is_before, err := i_inception.Before(j_inception)
 
 	if err != nil {

@@ -20,9 +20,9 @@ func TestSortByInception(t *testing.T) {
 
 	expected := []string{
 		"85922583",   // San Francisco (1850-04-15)
-		"420561633",  // Super Bowl City (2016-01-30)		
+		"420561633",  // Super Bowl City (2016-01-30)
 		"1008184051", // Poop Emoji Rock (2016-08)
-		"85688637",   // California (uuuu)		
+		"85688637",   // California (uuuu)
 	}
 
 	ctx := context.Background()
