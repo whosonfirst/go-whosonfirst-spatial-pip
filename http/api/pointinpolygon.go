@@ -24,6 +24,8 @@ const GEOJSON string = "application/geo+json"
 
 type PointInPolygonHandlerOptions struct {
 	EnableGeoJSON bool
+	Logger *log.Logger
+	LogTimings bool
 }
 
 func PointInPolygonHandler(app *spatial_app.SpatialApplication, opts *PointInPolygonHandlerOptions) (http.Handler, error) {
@@ -48,8 +50,11 @@ func PointInPolygonHandler(app *spatial_app.SpatialApplication, opts *PointInPol
 
 			app.Monitor.Signal(ctx, timings.SinceStop, timingsPIPHandler)
 
-			for _, t := range app.Timings {
-				log.Println(t)
+			if opts.LogTimings {
+				
+				for _, t := range app.Timings {
+					opts.Logger.Println(t)
+				}
 			}
 		}()
 		
