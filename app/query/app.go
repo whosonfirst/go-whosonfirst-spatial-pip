@@ -151,7 +151,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 		}
 
 		fmt.Println(string(enc))
-
+		
 	case "lambda":
 
 		<-done_ch
