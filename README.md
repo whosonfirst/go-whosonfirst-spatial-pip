@@ -2,6 +2,10 @@
 
 Opionated point-in-polygon operations for `go-whosonfirst-spatial` packages.
 
+## DEPRECATED
+
+This package has been deprecated. Its code has been moved in to the [whosonfirst/go-whosonfirst-spatial](https://github.com/whosonfirst/go-whosonfirst-spatial) and [whosonfirst/go-whosonfirst-spatial-www](https://github.com/whosonfirst/go-whosonfirst-spatial-www) pcakages.
+
 ## IMPORTANT
 
 This is work in progress. Documentation to follow.
